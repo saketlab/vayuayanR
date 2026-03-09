@@ -81,8 +81,8 @@ head(states)
 # Get cities in Maharashtra
 cities <- cpcb_get_city_list("Maharashtra")
 head(cities)
-#> [1] "Ahmednagar" "Akola"      "Amravati"   "Aurangabad" "Badlapur"  
-#> [6] "Belapur"
+#> [1] "Ahmednagar" "Akola"      "Ambernath"  "Amravati"   "Aurangabad"
+#> [6] "Badlapur"
 
 # Get monitoring stations in Mumbai
 stations <- cpcb_get_station_list("Mumbai")
@@ -138,15 +138,15 @@ The `cpcb_` live functions enable real-time air quality monitoring.
 # Get your current location (IP-based)
 location <- cpcb_get_system_location()
 print(location)
-#>       lat       lon 
-#>  36.67770 -78.37471
+#>     lat     lon 
+#> 19.0748 72.8856
 
 # Find nearest monitoring station
 nearest <- cpcb_get_nearest_station()
 cat("Nearest Station:", nearest$station_name)
-#> Nearest Station: Rajbagh, Srinagar - JKPCC
+#> Nearest Station: Kurla, Mumbai - MPCB
 cat("Distance:", round(nearest$distance_km, 2), "km")
-#> Distance: 11685.77 km
+#> Distance: 1.32 km
 ```
 
 ### Getting live AQI data
@@ -167,11 +167,6 @@ if (!is.null(aqi_data$metrics) && is.data.frame(aqi_data$metrics)) {
     ))
   }
 }
-#> PM2.5: Avg=23, Min=15, Max=33
-#> PM10: Avg=36, Min=23, Max=52
-#> SO2: Avg=3, Min=3, Max=4
-#> CO: Avg=16, Min=10, Max=24
-#> OZONE: Avg=1, Min=1, Max=4
 
 # Get AQI for specific coordinates
 mumbai_coords <- c(19.0760, 72.8777)
@@ -225,16 +220,16 @@ print(head(state_summary, 10))
 #> # A tibble: 10 × 5
 #>    state_id       total_stations live_stations offline_stations avg_aqi
 #>    <chr>                   <int>         <int>            <int>   <dbl>
-#>  1 Maharashtra                98            50               48   103. 
-#>  2 Uttar Pradesh              57            47               10   114. 
-#>  3 Rajasthan                  46            39                7   118. 
-#>  4 Delhi                      46            21               25   177  
-#>  5 Karnataka                  42            16               26    92.6
-#>  6 Madhya Pradesh             30            16               14   133. 
-#>  7 Bihar                      35            12               23   105. 
-#>  8 Odisha                     19            12                7   140. 
-#>  9 Chhattisgarh               14            11                3    75  
-#> 10 Gujarat                    22            11               11   123.
+#>  1 Maharashtra               102            56               46   107. 
+#>  2 Rajasthan                  46            37                9   112. 
+#>  3 Uttar Pradesh              57            28               29   133. 
+#>  4 Karnataka                  42            18               24    97.7
+#>  5 Madhya Pradesh             30            17               13   104. 
+#>  6 Gujarat                    22            16                6   106. 
+#>  7 West Bengal                22            16                6    76.6
+#>  8 Odisha                     19            12                7    81.7
+#>  9 Bihar                      35            10               25   114. 
+#> 10 Delhi                      46            10               36   188.
 ```
 
 ### AQI distribution analysis
@@ -252,10 +247,10 @@ category_dist <- df_with_categories %>%
 
 print(category_dist)
 #>   aqi_category   n
-#> 1     Moderate 155
-#> 2 Satisfactory 116
-#> 3         Good  12
-#> 4         Poor  11
+#> 1 Satisfactory 133
+#> 2     Moderate 126
+#> 3         Good  11
+#> 4         Poor   5
 #> 5    Very Poor   2
 
 # Visualize AQI distribution
@@ -402,7 +397,7 @@ mh_stations <- st_crop(stations_sf, mh_bbox)
 #> all geometries
 
 cat("Stations in Maharashtra region:", nrow(mh_stations))
-#> Stations in Maharashtra region: 67
+#> Stations in Maharashtra region: 74
 ```
 
 ## Utility functions
@@ -450,16 +445,16 @@ analysis <- analyze_station_data(all_stations)
 str(analysis)
 #> List of 11
 #>  $ total_cities          : int 4
-#>  $ total_stations        : int 577
-#>  $ live_stations         : int 296
-#>  $ offline_stations      : int 281
+#>  $ total_stations        : int 584
+#>  $ live_stations         : int 277
+#>  $ offline_stations      : int 307
 #>  $ states                : int 32
 #>  $ unique_states         : chr [1:32] "Andaman and Nicobar" "Andhra Pradesh" "Arunachal Pradesh" "Assam" ...
-#>  $ stations_with_aqi_data: int 296
-#>  $ avg_aqi_overall       : num 113
-#>  $ min_aqi               : num 31
-#>  $ max_aqi               : num 352
-#>  $ aqi_categories        : 'table' int [1:6(1d)] 12 155 281 11 116 2
+#>  $ stations_with_aqi_data: int 277
+#>  $ avg_aqi_overall       : num 106
+#>  $ min_aqi               : num 40
+#>  $ max_aqi               : num 317
+#>  $ aqi_categories        : 'table' int [1:6(1d)] 11 126 307 5 133 2
 #>   ..- attr(*, "dimnames")=List of 1
 #>   .. ..$ : chr [1:6] "Good" "Moderate" "No Data" "Poor" ...
 ```
@@ -479,12 +474,7 @@ tryCatch(
     message("Error fetching data: ", e$message)
   }
 )
-#>    name avg                avgDesc min max pollutantName
-#> 1 PM2.5  23 Over the last 24 hours  15  33         PM2.5
-#> 2  PM10  36 Over the last 24 hours  23  52          PM10
-#> 3   SO2   3 Over the last 24 hours   3   4           SO2
-#> 4    CO  16  Over the last 8 hours  10  24            CO
-#> 5 OZONE   1  Over the last 8 hours   1   4         OZONE
+#> list()
 ```
 
 ### Caching strategy

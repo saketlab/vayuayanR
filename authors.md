@@ -9,7 +9,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/saketkc/vayuayanR/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/saketkc/vayuayanR/blob/HEAD/DESCRIPTION)
 
 Choudhary S, Prajapat M (2026). *vayuayan: Comprehensive Air Quality
 Data Analysis for India*. R package version 0.0.1,

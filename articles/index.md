@@ -2,9 +2,9 @@
 
 ### All vignettes
 
-- [Mumbai PM2.5 Analysis
-  (2023–2025)](https://saketkc.github.io/vayuayanR/articles/delhi_choropleth_map.md):
 - [Delhi PM2.5 Analysis
-  (2023)](https://saketkc.github.io/vayuayanR/articles/delta_calculation_map.md):
+  (2022)](https://saketkc.github.io/vayuayanR/articles/delhi_pm2.5_analysis.md):
 - [Introduction to
   vayuayan](https://saketkc.github.io/vayuayanR/articles/introduction.md):
+- [Mumbai PM2.5 Analysis
+  (2022)](https://saketkc.github.io/vayuayanR/articles/mumbai_pm2.5_analysis.md):

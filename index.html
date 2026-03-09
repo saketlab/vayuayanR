@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" sizes="any" href="favicon.ico">
 <link rel="manifest" href="site.webmanifest">
-<script src="lightswitch.js"></script><script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<script src="lightswitch.js"></script><script src="deps/jquery-3.6.1/jquery-3.6.1.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
@@ -84,8 +84,8 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="articles/introduction.html">Introduction to vayuayan</a></li>
-    <li><a class="dropdown-item" href="articles/delta_calculation_map.html">Delhi PM2.5 analysis (2023)</a></li>
-    <li><a class="dropdown-item" href="articles/delhi_choropleth_map.html">Delhi choropleth map</a></li>
+    <li><a class="dropdown-item" href="articles/delhi_pm2.5_analysis.html">Delhi PM2.5 Analysis (2022)</a></li>
+    <li><a class="dropdown-item" href="articles/mumbai_pm2.5_analysis.html">Mumbai PM2.5 Analysis (2022)</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
@@ -115,294 +115,292 @@
 <img src="logo.png" class="logo" alt=""><h1 id="vayuayan-air-quality-data-analysis-for-india">vayuayan: Air Quality Data Analysis for India<a class="anchor" aria-label="anchor" href="#vayuayan-air-quality-data-analysis-for-india"></a>
 </h1>
 </div>
-<p><strong>vayuayan</strong> is an R package for fetching and analyzing air quality data from multiple sources:</p>
+<p><strong>vayuayan</strong> is an R package for fetching and analysing air quality data from multiple sources:</p>
 <ul>
 <li>
 <strong>WUSTL ACAG</strong>: Washington University satellite PM2.5 data (Global)</li>
 <li>
 <strong>CPCB India</strong>: Central Pollution Control Board monitoring network (India only)</li>
 </ul>
-<p>This is the R port of the Python package <a href="https://github.com/saketlab/vayuayan" class="external-link">vayuayan</a>. ## Etymology</p>
-<p><strong>Vayuayan</strong> (वायुअयन) combines two Sanskrit words: - <strong>Vayu</strong> (वायु): Wind, air - <strong>Ayan</strong> (अयन): Path, journey, movement</p>
-<p>Together, “Vayuayan” means “the path of wind” - representing the journey and movement of air quality data across space and time.</p>
+<p>This is the R port of the Python package <a href="https://github.com/saketlab/vayuayan" class="external-link">vayuayan</a>.</p>
+<div class="section level2">
+<h2 id="etymology">Etymology<a class="anchor" aria-label="anchor" href="#etymology"></a>
+</h2>
+<p><strong>Vayuayan</strong> (वायुअयन) combines two Sanskrit words:</p>
+<ul>
+<li>
+<strong>Vayu</strong> (वायु): Wind, air</li>
+<li>
+<strong>Ayan</strong> (अयन): Path, journey, movement</li>
+</ul>
+<p>Together, “Vayuayan” means “the path of wind” — representing the journey and movement of air quality data across space and time.</p>
+<hr>
+</div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
 <p>Install from GitHub using devtools:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Install devtools</span></span>
+<code class="sourceCode R"><span><span class="co"># Install devtools </span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Install vayuayan</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"saketlab/vayuayan-r"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"saketkc/vayuayanR"</span><span class="op">)</span></span></code></pre></div>
+<hr>
 </div>
 <div class="section level2">
 <h2 id="quick-start">Quick Start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
 </h2>
 <div class="section level3">
-<h3 id="historical-aqi-data">Historical AQI Data<a class="anchor" aria-label="anchor" href="#historical-aqi-data"></a>
+<h3 id="cpcb-historical-aqi-data">CPCB Historical AQI Data<a class="anchor" aria-label="anchor" href="#cpcb-historical-aqi-data"></a>
 </h3>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Load package</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://saketkc.github.io/vayuayanR/">vayuayan</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://saketkc.github.io/vayuayanR/">vayuayan</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Create historical data client</span></span>
-<span><span class="va">historical</span> <span class="op">&lt;-</span> <span class="va">CPCBHistorical</span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Get list of states</span></span>
-<span><span class="va">states</span> <span class="op">&lt;-</span> <span class="va">historical</span><span class="op">$</span><span class="fu">get_state_list</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co"># Get list of available states</span></span>
+<span><span class="va">states</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/cpcb_get_state_list.html">cpcb_get_state_list</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">states</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Get cities in Maharashtra</span></span>
-<span><span class="va">cities</span> <span class="op">&lt;-</span> <span class="va">historical</span><span class="op">$</span><span class="fu">get_city_list</span><span class="op">(</span><span class="st">"Maharashtra"</span><span class="op">)</span></span>
+<span><span class="co"># Get cities in a state</span></span>
+<span><span class="va">cities</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/cpcb_get_city_list.html">cpcb_get_city_list</a></span><span class="op">(</span><span class="st">"Maharashtra"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">cities</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Get stations in Mumbai</span></span>
-<span><span class="va">stations</span> <span class="op">&lt;-</span> <span class="va">historical</span><span class="op">$</span><span class="fu">get_station_list</span><span class="op">(</span><span class="st">"Mumbai"</span><span class="op">)</span></span>
+<span><span class="co"># Get stations in a city</span></span>
+<span><span class="va">stations</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/cpcb_get_station_list.html">cpcb_get_station_list</a></span><span class="op">(</span><span class="st">"Mumbai"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">stations</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Download city-level data</span></span>
-<span><span class="va">historical</span><span class="op">$</span><span class="fu">download_city_data</span><span class="op">(</span></span>
-<span>  city <span class="op">=</span> <span class="st">"Mumbai"</span>,</span>
-<span>  year <span class="op">=</span> <span class="fl">2024</span>,</span>
-<span>  save_location <span class="op">=</span> <span class="st">"mumbai_aqi_2024.csv"</span></span>
+<span><span class="co"># Add coordinates to station list via OpenStreetMap geocoding</span></span>
+<span><span class="va">stations</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/cpcb_add_coords.html">cpcb_add_coords</a></span><span class="op">(</span><span class="va">stations</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">stations</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"label"</span>, <span class="st">"lat"</span>, <span class="st">"lon"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Download city-level daily PM2.5 data</span></span>
+<span><span class="fu"><a href="reference/cpcb_download_city_data.html">cpcb_download_city_data</a></span><span class="op">(</span></span>
+<span>  city          <span class="op">=</span> <span class="st">"Mumbai"</span>,</span>
+<span>  year          <span class="op">=</span> <span class="fl">2022</span>,</span>
+<span>  save_location <span class="op">=</span> <span class="st">"mumbai_aqi_2022.csv"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Download station-level data</span></span>
-<span><span class="va">historical</span><span class="op">$</span><span class="fu">download_station_data</span><span class="op">(</span></span>
-<span>  station_id <span class="op">=</span> <span class="st">"site_5964"</span>,</span>
-<span>  year <span class="op">=</span> <span class="fl">2024</span>,</span>
-<span>  save_location <span class="op">=</span> <span class="st">"station_data_2024.csv"</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="live-aqi-monitoring">Live AQI Monitoring<a class="anchor" aria-label="anchor" href="#live-aqi-monitoring"></a>
-</h3>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Create live monitoring client</span></span>
-<span><span class="va">live</span> <span class="op">&lt;-</span> <span class="va">CPCBLive</span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Get your current location (IP-based)</span></span>
-<span><span class="va">location</span> <span class="op">&lt;-</span> <span class="va">live</span><span class="op">$</span><span class="fu">get_system_location</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">location</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Find nearest monitoring station</span></span>
-<span><span class="va">nearest</span> <span class="op">&lt;-</span> <span class="va">live</span><span class="op">$</span><span class="fu">get_nearest_station</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">nearest</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Get live AQI data for nearest station</span></span>
-<span><span class="va">aqi_data</span> <span class="op">&lt;-</span> <span class="va">live</span><span class="op">$</span><span class="fu">get_live_aqi_data</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">aqi_data</span><span class="op">$</span><span class="va">metrics</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Get live AQI for specific coordinates</span></span>
-<span><span class="va">aqi_data</span> <span class="op">&lt;-</span> <span class="va">live</span><span class="op">$</span><span class="fu">get_live_aqi_data</span><span class="op">(</span></span>
-<span>  coords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">19.0760</span>, <span class="fl">72.8777</span><span class="op">)</span>  <span class="co"># Mumbai coordinates</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Get live AQI for specific station and time</span></span>
-<span><span class="va">aqi_data</span> <span class="op">&lt;-</span> <span class="va">live</span><span class="op">$</span><span class="fu">get_live_aqi_data</span><span class="op">(</span></span>
-<span>  station_id <span class="op">=</span> <span class="st">"site_5964"</span>,</span>
-<span>  date <span class="op">=</span> <span class="st">"2024-02-25"</span>,</span>
-<span>  hour <span class="op">=</span> <span class="fl">10</span></span>
+<span><span class="co"># Download per-station daily PM2.5 data</span></span>
+<span><span class="fu"><a href="reference/cpcb_download_station_data.html">cpcb_download_station_data</a></span><span class="op">(</span></span>
+<span>  station_id    <span class="op">=</span> <span class="st">"site_5964"</span>,</span>
+<span>  year          <span class="op">=</span> <span class="fl">2022</span>,</span>
+<span>  save_location <span class="op">=</span> <span class="st">"station_data_2022.csv"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="pm25-satellite-data-analysis">PM2.5 Satellite Data Analysis<a class="anchor" aria-label="anchor" href="#pm25-satellite-data-analysis"></a>
 </h3>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Create PM2.5 client</span></span>
-<span><span class="va">pm25</span> <span class="op">&lt;-</span> <span class="va">PM25Client</span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>cache_dir <span class="op">=</span> <span class="st">"pm25_cache"</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://saketkc.github.io/vayuayanR/">vayuayan</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Get PM2.5 statistics for a region (combines all polygons)</span></span>
-<span><span class="va">delhi_stats</span> <span class="op">&lt;-</span> <span class="va">pm25</span><span class="op">$</span><span class="fu">get_pm25_stats</span><span class="op">(</span></span>
+<span><span class="co"># Get mean PM2.5 statistics for a region from WUSTL ACAG NetCDF</span></span>
+<span><span class="va">delhi_stats</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/pm25_get_stats.html">pm25_get_stats</a></span><span class="op">(</span></span>
 <span>  geojson_file <span class="op">=</span> <span class="st">"delhi_ncr.geojson"</span>,</span>
-<span>  year <span class="op">=</span> <span class="fl">2023</span>,</span>
-<span>  month <span class="op">=</span> <span class="fl">11</span></span>
+<span>  year         <span class="op">=</span> <span class="fl">2022</span>,</span>
+<span>  month        <span class="op">=</span> <span class="fl">11</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">delhi_stats</span><span class="op">)</span></span>
+<span><span class="co"># Returns: list(mean, std, min, max, count)</span></span>
 <span></span>
-<span><span class="co"># Get PM2.5 statistics grouped by state</span></span>
-<span><span class="va">state_stats</span> <span class="op">&lt;-</span> <span class="va">pm25</span><span class="op">$</span><span class="fu">get_pm25_stats</span><span class="op">(</span></span>
+<span><span class="co"># Get PM2.5 statistics grouped by a column in the GeoJSON</span></span>
+<span><span class="va">state_stats</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/pm25_get_stats.html">pm25_get_stats</a></span><span class="op">(</span></span>
 <span>  geojson_file <span class="op">=</span> <span class="st">"india_districts.geojson"</span>,</span>
-<span>  year <span class="op">=</span> <span class="fl">2023</span>,</span>
-<span>  month <span class="op">=</span> <span class="fl">11</span>,</span>
-<span>  group_by <span class="op">=</span> <span class="st">"state_name"</span></span>
+<span>  year         <span class="op">=</span> <span class="fl">2022</span>,</span>
+<span>  month        <span class="op">=</span> <span class="fl">11</span>,</span>
+<span>  group_by     <span class="op">=</span> <span class="st">"state_name"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">state_stats</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Get PM2.5 statistics grouped by multiple columns</span></span>
-<span><span class="va">district_stats</span> <span class="op">&lt;-</span> <span class="va">pm25</span><span class="op">$</span><span class="fu">get_pm25_stats</span><span class="op">(</span></span>
-<span>  geojson_file <span class="op">=</span> <span class="st">"india_districts.geojson"</span>,</span>
-<span>  year <span class="op">=</span> <span class="fl">2023</span>,</span>
-<span>  month <span class="op">=</span> <span class="fl">11</span>,</span>
-<span>  group_by <span class="op">=</span> <span class="st">"state_name,district_name"</span></span>
-<span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">district_stats</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># List cached NetCDF files</span></span>
-<span><span class="va">pm25</span><span class="op">$</span><span class="fu">list_cached_files</span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Clear cache</span></span>
-<span><span class="va">pm25</span><span class="op">$</span><span class="fu">clear_cache</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co"># Download a NetCDF file manually</span></span>
+<span><span class="fu"><a href="reference/pm25_download_netcdf.html">pm25_download_netcdf</a></span><span class="op">(</span></span>
+<span>  year      <span class="op">=</span> <span class="fl">2022</span>,</span>
+<span>  month     <span class="op">=</span> <span class="fl">11</span>,</span>
+<span>  cache_dir <span class="op">=</span> <span class="st">"pm25_data"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<hr>
 </div>
 </div>
 <div class="section level2">
 <h2 id="data-analysis-with-tidyverse">Data Analysis with tidyverse<a class="anchor" aria-label="anchor" href="#data-analysis-with-tidyverse"></a>
 </h2>
-<p>The package integrates well with tidyverse workflows:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://saketkc.github.io/vayuayanR/">vayuayan</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org" class="external-link">tidyverse</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Get all station data</span></span>
-<span><span class="va">live</span> <span class="op">&lt;-</span> <span class="va">CPCBLive</span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">stations_data</span> <span class="op">&lt;-</span> <span class="va">live</span><span class="op">$</span><span class="fu">get_all_india</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co"># Download and reshape city-level data</span></span>
+<span><span class="fu"><a href="reference/cpcb_download_city_data.html">cpcb_download_city_data</a></span><span class="op">(</span><span class="st">"Delhi"</span>, <span class="fl">2022</span>, <span class="st">"delhi_aqi_2022.csv"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Convert to tidy dataframe</span></span>
-<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/stations_to_dataframe.html">stations_to_dataframe</a></span><span class="op">(</span><span class="va">stations_data</span><span class="op">)</span></span>
+<span><span class="va">delhi_monthly</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="st">"delhi_aqi_2022.csv"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html" class="external-link">pivot_longer</a></span><span class="op">(</span>cols <span class="op">=</span> <span class="op">-</span><span class="va">Day</span>, names_to <span class="op">=</span> <span class="st">"Month_Name"</span>, values_to <span class="op">=</span> <span class="st">"pm25"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>month <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/match.html" class="external-link">match</a></span><span class="op">(</span><span class="va">Month_Name</span>, <span class="va">month.name</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">pm25</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">month</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>mean_pm25 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">pm25</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, .groups <span class="op">=</span> <span class="st">"drop"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Analyze live stations by state</span></span>
-<span><span class="va">state_summary</span> <span class="op">&lt;-</span> <span class="va">df</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">state_id</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span></span>
-<span>    total_stations <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html" class="external-link">n</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>    live_stations <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">live</span><span class="op">)</span>,</span>
-<span>    avg_aqi <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">avg_aqi</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
-<span>    .groups <span class="op">=</span> <span class="st">"drop"</span></span>
-<span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html" class="external-link">desc</a></span><span class="op">(</span><span class="va">live_stations</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">state_summary</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Plot AQI distribution</span></span>
-<span><span class="va">df</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">avg_aqi</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>aqi_category <span class="op">=</span> <span class="fu"><a href="reference/get_aqi_categories.html">get_aqi_categories</a></span><span class="op">(</span><span class="va">avg_aqi</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">avg_aqi</span>, fill <span class="op">=</span> <span class="va">aqi_category</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html" class="external-link">geom_histogram</a></span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">30</span><span class="op">)</span> <span class="op">+</span></span>
+<span><span class="co"># Plot seasonal trend</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">delhi_monthly</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">month</span>, y <span class="op">=</span> <span class="va">mean_pm25</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span>linewidth <span class="op">=</span> <span class="fl">1</span>, color <span class="op">=</span> <span class="st">"#d77027"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">2.5</span>, color <span class="op">=</span> <span class="st">"#d77027"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>breaks <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">12</span>, labels <span class="op">=</span> <span class="va">month.abb</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
-<span>    title <span class="op">=</span> <span class="st">"Distribution of AQI Values"</span>,</span>
-<span>    x <span class="op">=</span> <span class="st">"AQI"</span>,</span>
-<span>    y <span class="op">=</span> <span class="st">"Count"</span>,</span>
-<span>    fill <span class="op">=</span> <span class="st">"Category"</span></span>
+<span>    title <span class="op">=</span> <span class="st">"Delhi 2022: Monthly Mean PM2.5"</span>,</span>
+<span>    y     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"PM2.5 ("</span>, <span class="va">mu</span>, <span class="st">"g/m"</span><span class="op">^</span><span class="fl">3</span>, <span class="st">")"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    x     <span class="op">=</span> <span class="cn">NULL</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<hr>
 </div>
 <div class="section level2">
-<h2 id="mapping-air-quality-stations">Mapping Air Quality Stations<a class="anchor" aria-label="anchor" href="#mapping-air-quality-stations"></a>
+<h2 id="mapping-station-locations">Mapping Station Locations<a class="anchor" aria-label="anchor" href="#mapping-station-locations"></a>
 </h2>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://saketkc.github.io/vayuayanR/">vayuayan</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/sf/" class="external-link">sf</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Get station data with coordinates</span></span>
-<span><span class="va">live</span> <span class="op">&lt;-</span> <span class="va">CPCBLive</span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">stations_data</span> <span class="op">&lt;-</span> <span class="va">live</span><span class="op">$</span><span class="fu">get_all_india</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/stations_to_dataframe.html">stations_to_dataframe</a></span><span class="op">(</span><span class="va">stations_data</span><span class="op">)</span></span>
+<span><span class="co"># Get stations and geocode them</span></span>
+<span><span class="va">stations</span>    <span class="op">&lt;-</span> <span class="fu"><a href="reference/cpcb_get_station_list.html">cpcb_get_station_list</a></span><span class="op">(</span><span class="st">"Delhi"</span><span class="op">)</span></span>
+<span><span class="va">stations_sf</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/cpcb_add_coords.html">cpcb_add_coords</a></span><span class="op">(</span><span class="va">stations</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">lat</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span>coords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lon"</span>, <span class="st">"lat"</span><span class="op">)</span>, crs <span class="op">=</span> <span class="fl">4326</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Filter live stations with valid coordinates</span></span>
-<span><span class="va">live_stations</span> <span class="op">&lt;-</span> <span class="va">df</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">live</span> <span class="op">==</span> <span class="cn">TRUE</span>, <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">longitude</span><span class="op">)</span>, <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">latitude</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>aqi_category <span class="op">=</span> <span class="fu"><a href="reference/get_aqi_categories.html">get_aqi_categories</a></span><span class="op">(</span><span class="va">avg_aqi</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Convert to sf object</span></span>
-<span><span class="va">stations_sf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span></span>
-<span>  <span class="va">live_stations</span>,</span>
-<span>  coords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"longitude"</span>, <span class="st">"latitude"</span><span class="op">)</span>,</span>
-<span>  crs <span class="op">=</span> <span class="fl">4326</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Plot stations on map</span></span>
+<span><span class="co"># Plot</span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">stations_sf</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html" class="external-link">geom_sf</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>color <span class="op">=</span> <span class="va">aqi_category</span><span class="op">)</span>, size <span class="op">=</span> <span class="fl">2</span>, alpha <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_color_manual</a></span><span class="op">(</span></span>
-<span>    values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>      <span class="st">"Good"</span> <span class="op">=</span> <span class="st">"green"</span>,</span>
-<span>      <span class="st">"Satisfactory"</span> <span class="op">=</span> <span class="st">"lightgreen"</span>,</span>
-<span>      <span class="st">"Moderate"</span> <span class="op">=</span> <span class="st">"yellow"</span>,</span>
-<span>      <span class="st">"Poor"</span> <span class="op">=</span> <span class="st">"orange"</span>,</span>
-<span>      <span class="st">"Very Poor"</span> <span class="op">=</span> <span class="st">"red"</span>,</span>
-<span>      <span class="st">"Severe"</span> <span class="op">=</span> <span class="st">"darkred"</span></span>
-<span>    <span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html" class="external-link">geom_sf</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">3</span>, color <span class="op">=</span> <span class="st">"royalblue4"</span>, alpha <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
-<span>    title <span class="op">=</span> <span class="st">"Live Air Quality Monitoring Stations in India"</span>,</span>
-<span>    color <span class="op">=</span> <span class="st">"AQI Category"</span></span>
+<span>    title <span class="op">=</span> <span class="st">"CPCB Monitoring Stations — Delhi"</span>,</span>
+<span>    caption <span class="op">=</span> <span class="st">"Source: CPCB CAAQMS"</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<hr>
 </div>
 <div class="section level2">
 <h2 id="api-reference">API Reference<a class="anchor" aria-label="anchor" href="#api-reference"></a>
 </h2>
 <div class="section level3">
-<h3 id="cpcbhistorical">CPCBHistorical<a class="anchor" aria-label="anchor" href="#cpcbhistorical"></a>
+<h3 id="cpcb-functions">CPCB Functions<a class="anchor" aria-label="anchor" href="#cpcb-functions"></a>
 </h3>
-<ul>
-<li>
-<code><a href="https://rdrr.io/r/methods/new.html" class="external-link">new()</a></code> - Initialize historical data client</li>
-<li>
-<code>get_state_list()</code> - Get available states</li>
-<li>
-<code>get_city_list(state)</code> - Get cities in a state</li>
-<li>
-<code>get_station_list(city)</code> - Get stations in a city</li>
-<li>
-<code>download_city_data(city, year, save_location)</code> - Download city-level data</li>
-<li>
-<code>download_station_data(station_id, year, save_location)</code> - Download station-level data</li>
-</ul>
+<table class="table">
+<colgroup>
+<col width="43%">
+<col width="56%">
+</colgroup>
+<thead><tr>
+<th>Function</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code><a href="reference/cpcb_get_state_list.html">cpcb_get_state_list()</a></code></td>
+<td>Get all available states</td>
+</tr>
+<tr>
+<td><code>cpcb_get_city_list(state)</code></td>
+<td>Get cities in a state</td>
+</tr>
+<tr>
+<td><code>cpcb_get_station_list(city)</code></td>
+<td>Get stations in a city as a data frame</td>
+</tr>
+<tr>
+<td><code><a href="reference/cpcb_get_complete_list.html">cpcb_get_complete_list()</a></code></td>
+<td>Get all states, cities, and stations</td>
+</tr>
+<tr>
+<td><code>cpcb_add_coords(station_df)</code></td>
+<td>Geocode stations via OpenStreetMap Nominatim</td>
+</tr>
+<tr>
+<td><code>cpcb_download_city_data(city, year, save_location)</code></td>
+<td>Download city-level daily PM2.5</td>
+</tr>
+<tr>
+<td><code>cpcb_download_station_data(station_id, year, save_location)</code></td>
+<td>Download per-station daily PM2.5</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section level3">
-<h3 id="cpcblive">CPCBLive<a class="anchor" aria-label="anchor" href="#cpcblive"></a>
+<h3 id="pm25-satellite-functions">PM2.5 Satellite Functions<a class="anchor" aria-label="anchor" href="#pm25-satellite-functions"></a>
 </h3>
-<ul>
-<li>
-<code><a href="https://rdrr.io/r/methods/new.html" class="external-link">new()</a></code> - Initialize live monitoring client</li>
-<li>
-<code>get_system_location()</code> - Get IP-based location</li>
-<li>
-<code>get_all_india()</code> - Get all stations in India</li>
-<li>
-<code>get_nearest_station(coords = NULL)</code> - Find nearest station</li>
-<li>
-<code>get_live_aqi_data(station_id = NULL, coords = NULL, date = NULL, hour = NULL)</code> - Get live AQI data</li>
-</ul>
+<table class="table">
+<colgroup>
+<col width="43%">
+<col width="56%">
+</colgroup>
+<thead><tr>
+<th>Function</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>pm25_get_stats(geojson_file, year, month, cache_dir, group_by)</code></td>
+<td>Extract mean PM2.5 stats for a region</td>
+</tr>
+<tr>
+<td><code>pm25_download_netcdf(year, month, cache_dir)</code></td>
+<td>Download WUSTL ACAG NetCDF file</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section level3">
-<h3 id="pm25client">PM25Client<a class="anchor" aria-label="anchor" href="#pm25client"></a>
+<h3 id="utility-functions">Utility Functions<a class="anchor" aria-label="anchor" href="#utility-functions"></a>
 </h3>
-<ul>
-<li>
-<code>new(cache_dir = "pm25_data")</code> - Initialize PM2.5 client</li>
-<li>
-<code>download_netcdf_if_needed(year, month = NULL, force_download = FALSE)</code> - Download NetCDF data</li>
-<li>
-<code>get_pm25_stats(geojson_file, year, month = NULL, group_by = NULL)</code> - Compute PM2.5 statistics</li>
-<li>
-<code>list_cached_files()</code> - List cached NetCDF files</li>
-<li>
-<code>clear_cache()</code> - Clear all cached files</li>
-</ul>
+<table class="table">
+<colgroup>
+<col width="43%">
+<col width="56%">
+</colgroup>
+<thead><tr>
+<th>Function</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>get_aqi_category(value)</code></td>
+<td>Get AQI category label for a single value</td>
+</tr>
+<tr>
+<td><code>get_aqi_categories(values)</code></td>
+<td>Vectorised AQI category labels</td>
+</tr>
+<tr>
+<td><code>clean_station_name(name)</code></td>
+<td>Sanitise station name for use as filename</td>
+</tr>
+<tr>
+<td><code>haversine_distance(lat1, lon1, lat2, lon2)</code></td>
+<td>Distance between two coordinates (km)</td>
+</tr>
+<tr>
+<td><code>stations_to_dataframe(data)</code></td>
+<td>Convert raw station list to tidy data frame</td>
+</tr>
+</tbody>
+</table>
+<hr>
 </div>
 </div>
 <div class="section level2">
 <h2 id="contributing">Contributing<a class="anchor" aria-label="anchor" href="#contributing"></a>
 </h2>
 <p>Contributions are welcome! Please feel free to submit a pull request.</p>
+<hr>
 </div>
 <div class="section level2">
 <h2 id="disclaimer">Disclaimer<a class="anchor" aria-label="anchor" href="#disclaimer"></a>
 </h2>
-<p>This package is not officially affiliated with any government agency or air quality monitoring network. It’s a third-party tool for accessing publicly available environmental data. Users are responsible for verifying data accuracy and following proper attribution guidelines.</p>
+<p>This package is not officially affiliated with any government agency or air quality monitoring network. It is a third-party tool for accessing publicly available environmental data. Users are responsible for verifying data accuracy and following proper attribution guidelines.</p>
+<hr>
 </div>
 <div class="section level2">
 <h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
 </h2>
 <p>If you use this package in your research, please cite:</p>
-<pre><code>Choudhary, S., &amp; Prajapat, M. K. (2025). vayuayan: Air Quality Data Analysis for India.
-R package version 0.1.3. https://github.com/saketlab/vayuayan-r</code></pre>
+<pre><code>Choudhary, S., &amp; Prajapat, M. K. (2025). vayuayan: Air Quality Data Analysis
+for India. R package version 0.1.3. https://github.com/saketkc/vayuayanR</code></pre>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
