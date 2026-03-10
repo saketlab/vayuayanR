@@ -283,16 +283,17 @@ ggplot(mumbai_final, aes(x = month)) +
     aes(y = sat_pm25, color = "WUSTL Satellite"),
     linewidth = 1, linetype = "dashed"
   ) +
-  geom_point(aes(y = ground_pm25, color = "CPCB Ground"), size = 2.5) +
-  geom_point(aes(y = sat_pm25,    color = "WUSTL Satellite"), size = 2.5) +
+  geom_point(aes(y = ground_pm25, color = "CPCB Ground"), size = 2) +
+  geom_point(aes(y = sat_pm25,    color = "WUSTL Satellite"), size = 2) +
+  # WHO reference lines
   geom_hline(yintercept = 5,  linetype = "dotted", color = "darkgreen", linewidth = 0.6) +
   geom_hline(yintercept = 15, linetype = "dotted", color = "orange",    linewidth = 0.6) +
-  annotate("text", x = 1, y = 18, label = "WHO 24hr limit (15 µg/m³)",  size = 3, color = "orange",    hjust = 0) +
+  annotate("text", x = 1, y = 18, label = "WHO 24hr limit (15 µg/m³)",  size = 3, color = "tan4",    hjust = 0) +
   annotate("text", x = 1, y = 8,  label = "WHO annual limit (5 µg/m³)", size = 3, color = "darkgreen", hjust = 0) +
   scale_x_continuous(breaks = 1:12, labels = month.abb) +
   scale_color_manual(values = c(
-    "CPCB Ground"     = "#c0392b",
-    "WUSTL Satellite" = "#2980b9"
+    "CPCB Ground"     = "#d77027ff",
+    "WUSTL Satellite" = "#4575b4"
   )) +
   labs(
     title   = "Mumbai 2022: PM2.5 Seasonal Cycle — Satellite vs Ground",
@@ -301,8 +302,13 @@ ggplot(mumbai_final, aes(x = month)) +
     color   = NULL,
     caption = "Source: WUSTL ACAG V5GL04 + CPCB CAAQMS | Dotted lines = WHO guidelines"
   ) +
-  theme_minimal(base_size = 13) +
-  theme(legend.position = "bottom")
+      theme_minimal(base_size = 11) +
+ theme(
+    text = element_text(family = "Arial"),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_line(linetype = "dashed", color = "grey85"),
+      legend.position = "top")
 ```
 
 ![Mumbai 2022: Monthly PM2.5 from satellite and ground sources. Both
@@ -346,22 +352,17 @@ r_nov              <- load_v5gl04_rast(2022, 11, mumbai_shape)
 mumbai_raster_mask <- terra::mask(r_nov, terra::vect(mumbai_shape))
 
 # Outer Mumbai boundary for map reference overlay
-mumbai_city_boundary <- sf::st_union(mumbai_shape)
+mumbai_city_boundary <- suppressWarnings(sf::st_union(mumbai_shape))
 ```
 
 ``` r
 ggplot() +
-  annotate(
-    "rect",
-    xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf,
-    fill = "#c6e8f0"
-  ) +
   geom_spatraster(data = mumbai_raster_mask) +
   geom_sf(
     data      = mumbai_city_boundary,
     fill      = NA,
-    color     = "black",
-    linewidth = 0.8
+    color     = "royalblue4",
+    linewidth = 0.4
   ) +
   scale_fill_whitebox_c(
     palette  = "muted",
@@ -370,11 +371,22 @@ ggplot() +
   ) +
   labs(
     title    = "Spatial Distribution of PM2.5 in Mumbai",
-    subtitle = "Satellite estimate: November 2022 | Blue = sea/creek areas",
+    subtitle = "Satellite estimate: November 2022",
     caption  = "Source: WUSTL ACAG V5GL04 | Resolution: ~1km"
   ) +
   xlab(NULL) + ylab(NULL) +
-  theme_minimal(base_size = 13)
+  theme_minimal(base_size = 11) +
+    theme(
+    text = element_text(family = "Arial"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    legend.position = "top") +
+     guides(
+    fill = guide_colorbar(
+      barwidth = unit(10, "lines"),
+      barheight = unit(0.6, "lines")
+    )
+  )
 ```
 
 ![Spatial PM2.5 distribution across Mumbai, November 2022. Black outline
@@ -387,7 +399,7 @@ Mumbai city boundary. Northern suburbs tend toward higher PM2.5 than the
 southern peninsula.
 
 ``` r
-
+    
 ggsave("fig2_mumbai_heatmap_nov2022.png", width = 9, height = 8, dpi = 300)
 ```
 
@@ -412,21 +424,20 @@ localities?
 if (file.exists("mumbai_stations_with_coords.csv")) {
   mumbai_station_list <- read.csv("mumbai_stations_with_coords.csv")
 } else {
-  mumbai_station_list <- cpcb_get_station_list("Mumbai")
-  mumbai_station_list <- cpcb_add_coords(mumbai_station_list)
-  # Manual patch for site_5102 Vasai West — outside Mumbai city limits,
-  # absent from CPCB live feed and Nominatim returns no result
-  mumbai_station_list$lat[mumbai_station_list$value == "site_5102"] <- 19.3666
-  mumbai_station_list$lon[mumbai_station_list$value == "site_5102"] <- 72.8161
-  write.csv(mumbai_station_list, "mumbai_stations_with_coords.csv", row.names = FALSE)
+mumbai_station_list <- cpcb_get_station_list("Mumbai")
+mumbai_station_list <- cpcb_add_coords(mumbai_station_list)
+# Remove site_5102 — Vasai West, outside Mumbai city limits
+mumbai_station_list <- mumbai_station_list %>% filter(value != "site_5102")
+write.csv(mumbai_station_list, "mumbai_stations_with_coords.csv", row.names = FALSE)
 }
 
 mumbai_full_sf <- mumbai_station_list %>%
-  filter(!is.na(lat)) %>%
+  filter(!is.na(lat), !is.na(lon)) %>%
+  filter(value != "site_5102") %>%    # outside Mumbai limits
   sf::st_as_sf(coords = c("lon", "lat"), crs = 4326)
 
 cat(nrow(mumbai_full_sf), "stations loaded\n")
-#> 29 stations loaded
+#> 28 stations loaded
 ```
 
 #### Choropleth: Locality-Level PM2.5 + Station Locations
@@ -450,28 +461,9 @@ mumbai_ward_bounds <- mumbai_localities %>%
 
 ``` r
 ggplot() +
-  annotate(
-    "rect",
-    xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf,
-    fill = "#c6e8f0"
-  ) +
   geom_sf(
     data = mumbai_localities, aes(fill = sat_pm25),
     color = "white", linewidth = 0.15
-  ) +
-  geom_sf(
-    data      = mumbai_ward_bounds,
-    fill      = NA,
-    color     = "black",
-    linewidth = 0.5
-  ) +
-  geom_sf_label(
-    data       = mumbai_ward_bounds,
-    aes(label  = WARD),
-    size       = 2.5,
-    fill       = "white",
-    alpha      = 0.75,
-    label.size = 0
   ) +
   geom_sf(
     data = mumbai_full_sf, color = "black",
@@ -485,11 +477,22 @@ ggplot() +
   ) +
   labs(
     title    = "Mumbai PM2.5 Monitoring Network",
-    subtitle = "Locality shading = satellite average PM2.5 | Blue dots = CPCB stations | Black = ward boundaries",
+    subtitle = "Locality shading = satellite average PM2.5 | Blue dots = CPCB stations",
     caption  = "November 2022 | Source: WUSTL ACAG V5GL04 + CPCB CAAQMS"
   ) +
   xlab(NULL) + ylab(NULL) +
-  theme_minimal(base_size = 13)
+  theme_minimal(base_size = 11) +
+    theme(
+    text = element_text(family = "Arial"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    legend.position = "top") +
+     guides(
+    fill = guide_colorbar(
+      barwidth = unit(10, "lines"),
+      barheight = unit(0.6, "lines")
+    )
+  )
 ```
 
 ![Locality-level satellite PM2.5 with CPCB station locations. Black
@@ -501,7 +504,6 @@ boundaries = Mumbai’s 24 administrative wards. Blue dots = CPCB
 stations.
 
 ``` r
-
 ggsave("fig3_mumbai_choropleth_stations.png", width = 9, height = 8, dpi = 300)
 ```
 
@@ -572,10 +574,11 @@ station_ground_sf <- station_ground %>%
   filter(!is.na(ground_pm25)) %>%
   left_join(mumbai_station_list %>% select(value, lat, lon), by = "value") %>%
   filter(!is.na(lat), !is.na(lon)) %>%
+  filter(value != "site_5102") %>%    # outside Mumbai limits
   sf::st_as_sf(coords = c("lon", "lat"), crs = 4326)
 
 cat(nrow(station_ground_sf), "stations with valid winter PM2.5 (2022 data)\n")
-#> 18 stations with valid winter PM2.5 (2022 data)
+#> 17 stations with valid winter PM2.5 (2022 data)
 ```
 
 #### Compute Delta at Each Locality Centroid
@@ -610,14 +613,14 @@ cat("Delta summary (satellite - nearest ground station):\n")
 #> Delta summary (satellite - nearest ground station):
 print(summary(mumbai_localities$delta))
 #>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
-#> -167.89 -125.88 -106.05 -103.52  -81.10  -25.41       5
+#> -167.89 -125.65 -106.45 -103.34  -81.10  -25.41       5
 cat("\nPriority breakdown:\n")
 #> 
 #> Priority breakdown:
 print(table(mumbai_localities$priority))
 #> 
 #>   High priority Medium priority  Well monitored 
-#>              59              59             109
+#>              59              66             102
 ```
 
 #### The Monitoring Gap Map
@@ -635,11 +638,6 @@ connection_lines <- data.frame(
 ) %>% filter(!is.na(delta))
 
 ggplot() +
-  annotate(
-    "rect",
-    xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf,
-    fill = "#c6e8f0"
-  ) +
   geom_sf(
     data      = mumbai_localities,
     aes(fill  = delta),
@@ -649,29 +647,15 @@ ggplot() +
   geom_segment(
     data = connection_lines,
     aes(x = x_from, y = y_from, xend = x_to, yend = y_to),
-    color     = "grey30",
-    linewidth = 0.3,
-    alpha     = 0.5,
+    color     = "grey8",
+    linewidth = 0.4,
+    alpha     = 0.6,
     linetype  = "dashed"
-  ) +
-  geom_sf(
-    data      = mumbai_ward_bounds,
-    fill      = NA,
-    color     = "black",
-    linewidth = 0.5
-  ) +
-  geom_sf_label(
-    data       = mumbai_ward_bounds,
-    aes(label  = WARD),
-    size       = 2.3,
-    fill       = "white",
-    alpha      = 0.75,
-    label.size = 0
   ) +
   geom_sf(
     data  = station_ground_sf,
     color = "black", fill = "yellow",
-    size  = 3, shape = 21
+    size  = 2.5, shape = 21, alpha=0.7
   ) +
   scale_fill_gradientn(
     colours  = khroma::colour("roma")(100),
@@ -690,11 +674,19 @@ ggplot() +
   ) +
   xlab(NULL) + ylab(NULL) +
   coord_sf() +
-  theme_minimal(base_size = 13) +
-  theme(
-    plot.title      = element_text(face = "bold"),
-    plot.subtitle   = element_text(size = 9.5, color = "grey40"),
-    legend.position = "right"
+    theme_minimal(base_size = 11) +
+    theme(
+    text = element_text(family = "Arial"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    legend.position = "top",
+     plot.title      = element_text(face = "bold"),
+    plot.subtitle   = element_text(size = 9.5, color = "grey8")) +
+     guides(
+    fill = guide_colorbar(
+      barwidth = unit(10, "lines"),
+      barheight = unit(0.6, "lines")
+    )
   )
 ```
 
@@ -716,28 +708,9 @@ ggsave("fig4_mumbai_monitoring_gap_map.png", width = 9, height = 8, dpi = 300)
 
 ``` r
 ggplot() +
-  annotate(
-    "rect",
-    xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf,
-    fill = "#c6e8f0"
-  ) +
   geom_sf(
     data = mumbai_localities, aes(fill = priority),
     color = "white", linewidth = 0.15
-  ) +
-  geom_sf(
-    data      = mumbai_ward_bounds,
-    fill      = NA,
-    color     = "black",
-    linewidth = 0.5
-  ) +
-  geom_sf_label(
-    data       = mumbai_ward_bounds,
-    aes(label  = WARD),
-    size       = 2.3,
-    fill       = "white",
-    alpha      = 0.75,
-    label.size = 0
   ) +
   geom_sf(
     data  = mumbai_full_sf,
@@ -759,10 +732,20 @@ ggplot() +
     caption  = "Source: WUSTL ACAG V5GL04 + CPCB CAAQMS | November 2022"
   ) +
   xlab(NULL) + ylab(NULL) +
-  theme_minimal(base_size = 13) +
-  theme(
-    plot.title      = element_text(face = "bold"),
-    plot.subtitle   = element_text(size = 9.5, color = "grey40")
+  coord_sf() +
+    theme_minimal(base_size = 11) +
+    theme(
+    text = element_text(family = "Arial"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    legend.position = "top",
+     plot.title      = element_text(face = "bold"),
+    plot.subtitle   = element_text(size = 9.5, color = "grey8")) +
+     guides(
+    fill = guide_colorbar(
+      barwidth = unit(10, "lines"),
+      barheight = unit(0.6, "lines")
+    )
   )
 ```
 
@@ -787,7 +770,7 @@ cor_val <- cor(
   use = "complete.obs"
 )
 cat("Correlation (distance vs |delta|): r =", round(cor_val, 3), "\n")
-#> Correlation (distance vs |delta|): r = -0.101
+#> Correlation (distance vs |delta|): r = -0.082
 
 ggplot(
   data = sf::st_drop_geometry(mumbai_localities),

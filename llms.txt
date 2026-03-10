@@ -55,7 +55,7 @@ print(cities)
 stations <- cpcb_get_station_list("Mumbai")
 print(stations)
 
-# Add coordinates to station list via OpenStreetMap geocoding
+# Add coordinates from CPCB live feed
 stations <- cpcb_add_coords(stations)
 print(stations[, c("label", "lat", "lon")])
 
@@ -145,7 +145,7 @@ library(vayuayan)
 library(sf)
 library(ggplot2)
 
-# Get stations and geocode them
+# Get stations and add coordinates from CPCB live feed
 stations    <- cpcb_get_station_list("Delhi")
 stations_sf <- cpcb_add_coords(stations) %>%
   filter(!is.na(lat)) %>%
@@ -155,7 +155,7 @@ stations_sf <- cpcb_add_coords(stations) %>%
 ggplot(stations_sf) +
   geom_sf(size = 3, color = "royalblue4", alpha = 0.8) +
   labs(
-    title = "CPCB Monitoring Stations — Delhi",
+    title   = "CPCB Monitoring Stations — Delhi",
     caption = "Source: CPCB CAAQMS"
   ) +
   theme_minimal()
@@ -173,7 +173,7 @@ ggplot(stations_sf) +
 | `cpcb_get_city_list(state)` | Get cities in a state |
 | `cpcb_get_station_list(city)` | Get stations in a city as a data frame |
 | [`cpcb_get_complete_list()`](https://saketkc.github.io/vayuayanR/reference/cpcb_get_complete_list.md) | Get all states, cities, and stations |
-| `cpcb_add_coords(station_df)` | Geocode stations via OpenStreetMap Nominatim |
+| `cpcb_add_coords(station_df)` | Add coordinates from CPCB live feed (Nominatim fallback for offline stations) |
 | `cpcb_download_city_data(city, year, save_location)` | Download city-level daily PM2.5 |
 | `cpcb_download_station_data(station_id, year, save_location)` | Download per-station daily PM2.5 |
 

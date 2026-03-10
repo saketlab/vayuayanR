@@ -824,7 +824,7 @@ level.</p>
 <span>  <span class="co"># CPCB station locations</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html" class="external-link">geom_sf</a></span><span class="op">(</span></span>
 <span>    data  <span class="op">=</span> <span class="va">station_ground_sf</span>,</span>
-<span>    color <span class="op">=</span> <span class="st">"black"</span>, fill <span class="op">=</span> <span class="st">"tan2"</span>,</span>
+<span>    color <span class="op">=</span> <span class="st">"black"</span>, fill <span class="op">=</span> <span class="st">"yellow"</span>,</span>
 <span>    size  <span class="op">=</span> <span class="fl">2.5</span>, shape <span class="op">=</span> <span class="fl">21</span>, alpha<span class="op">=</span><span class="fl">0.7</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_gradient.html" class="external-link">scale_fill_gradientn</a></span><span class="op">(</span></span>
@@ -926,8 +926,7 @@ nearest sensor should show greater ground-satellite disagreement. This
 scatter plot tests that relationship directly using a LOESS fit to
 capture any non-linear pattern.</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Pearson correlation between distance and absolute delta</span></span>
-<span><span class="va">cor_val</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="va">cor_val</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span></span>
 <span>  <span class="va">delhi_wards</span><span class="op">$</span><span class="va">nearest_winter_km</span>,</span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">delhi_wards</span><span class="op">$</span><span class="va">delta</span><span class="op">)</span>,</span>
 <span>  use <span class="op">=</span> <span class="st">"complete.obs"</span></span>
@@ -939,10 +938,12 @@ capture any non-linear pattern.</p>
 <span>  data <span class="op">=</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_geometry.html" class="external-link">st_drop_geometry</a></span><span class="op">(</span><span class="va">delhi_wards</span><span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">nearest_winter_km</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">delta</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>color <span class="op">=</span> <span class="va">nearest_winter_km</span><span class="op">)</span>, size <span class="op">=</span> <span class="fl">3</span>, alpha <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="co"># LOESS fit — captures non-linear relationship better than linear</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_smooth.html" class="external-link">geom_smooth</a></span><span class="op">(</span>method <span class="op">=</span> <span class="st">"loess"</span>, se <span class="op">=</span> <span class="cn">TRUE</span>, color <span class="op">=</span> <span class="st">"grey30"</span>, linewidth <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="co"># Annotate with Pearson r</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_rug.html" class="external-link">geom_rug</a></span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">0.3</span>, color <span class="op">=</span> <span class="st">"grey40"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>color <span class="op">=</span> <span class="va">nearest_winter_km</span><span class="op">)</span>, size <span class="op">=</span> <span class="fl">3</span>, alpha <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_smooth.html" class="external-link">geom_smooth</a></span><span class="op">(</span></span>
+<span>    method <span class="op">=</span> <span class="st">"loess"</span>, se <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>    color <span class="op">=</span> <span class="st">"firebrick"</span>, fill <span class="op">=</span> <span class="st">"pink"</span>, alpha <span class="op">=</span> <span class="fl">0.2</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/annotate.html" class="external-link">annotate</a></span><span class="op">(</span></span>
 <span>    <span class="st">"text"</span>,</span>
 <span>    x     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">delhi_wards</span><span class="op">$</span><span class="va">nearest_winter_km</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">*</span> <span class="fl">0.55</span>,</span>
@@ -951,8 +952,9 @@ capture any non-linear pattern.</p>
 <span>    size  <span class="op">=</span> <span class="fl">4.5</span>, color <span class="op">=</span> <span class="st">"grey20"</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_color_distiller</a></span><span class="op">(</span></span>
-<span>    palette <span class="op">=</span> <span class="st">"RdYlGn"</span>, direction <span class="op">=</span> <span class="op">-</span><span class="fl">1</span>,</span>
-<span>    name    <span class="op">=</span> <span class="st">"Distance to\nnearest sensor (km)"</span></span>
+<span>    palette   <span class="op">=</span> <span class="st">"YlOrRd"</span>,</span>
+<span>    direction <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>    name      <span class="op">=</span> <span class="st">"Distance (km)"</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
 <span>    title    <span class="op">=</span> <span class="st">"Sensor Distance Predicts Ground-Satellite Disagreement"</span>,</span>
@@ -961,55 +963,29 @@ capture any non-linear pattern.</p>
 <span>    y        <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"|Delta| PM"</span><span class="op">[</span><span class="fl">2.5</span><span class="op">]</span> <span class="op">~</span> <span class="op">(</span><span class="va">mu</span> <span class="op">*</span> <span class="va">g</span><span class="op">/</span><span class="va">m</span><span class="op">^</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>    caption  <span class="op">=</span> <span class="st">"November 2022 | Source: WUSTL ACAG V5GL04 + CPCB CAAQMS"</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">13</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">11</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span></span>
-<span>    plot.title      <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>face <span class="op">=</span> <span class="st">"bold"</span><span class="op">)</span>,</span>
-<span>    plot.subtitle   <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">9.5</span>, color <span class="op">=</span> <span class="st">"grey40"</span><span class="op">)</span>,</span>
-<span>    legend.position <span class="op">=</span> <span class="st">"top"</span></span>
+<span>    text               <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>family <span class="op">=</span> <span class="st">"Arial"</span><span class="op">)</span>,</span>
+<span>    legend.position    <span class="op">=</span> <span class="st">"top"</span>,</span>
+<span>    panel.grid.minor   <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    plot.title         <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>face <span class="op">=</span> <span class="st">"bold"</span><span class="op">)</span>,</span>
+<span>    plot.subtitle      <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">9.5</span>, color <span class="op">=</span> <span class="st">"grey40"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guides.html" class="external-link">guides</a></span><span class="op">(</span>color <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_colourbar.html" class="external-link">guide_colorbar</a></span><span class="op">(</span>barwidth  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">15</span>, <span class="st">"lines"</span><span class="op">)</span>, </span>
-<span>                               barheight <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">0.7</span>, <span class="st">"lines"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guides.html" class="external-link">guides</a></span><span class="op">(</span>color <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_colourbar.html" class="external-link">guide_colorbar</a></span><span class="op">(</span></span>
+<span>    barwidth       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">12</span>, <span class="st">"lines"</span><span class="op">)</span>,</span>
+<span>    barheight      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="st">"lines"</span><span class="op">)</span>,</span>
+<span>    title.position <span class="op">=</span> <span class="st">"top"</span></span>
+<span>  <span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
-<img src="delhi_pm2.5_analysis_files/figure-html/scatter-1.png" class="r-plt" alt="Relationship between sensor distance and ground-satellite disagreement across 273 Delhi wards. LOESS fit captures non-linear trend. An upward slope confirms that wards further from sensors show larger disagreement — supporting the case for expanding the monitoring network." width="100%"><p class="caption">
+<img src="delhi_pm2.5_analysis_files/figure-html/scatter-1.png" class="r-plt" alt="Relationship between sensor distance and ground-satellite disagreement across 273 Delhi wards. LOESS fit captures non-linear trend. Rug marks show distribution of values along each axis." width="100%"><p class="caption">
 Relationship between sensor distance and ground-satellite disagreement
-across 273 Delhi wards. LOESS fit captures non-linear trend. An upward
-slope confirms that wards further from sensors show larger disagreement
-— supporting the case for expanding the monitoring network.
+across 273 Delhi wards. LOESS fit captures non-linear trend. Rug marks
+show distribution of values along each axis.
 </p>
 </div>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggsave</a></span><span class="op">(</span><span class="st">"fig6_distance_vs_disagreement.png"</span>, width <span class="op">=</span> <span class="fl">9</span>, height <span class="op">=</span> <span class="fl">5</span>, dpi <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co">#or</span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span></span>
-<span>  data <span class="op">=</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_geometry.html" class="external-link">st_drop_geometry</a></span><span class="op">(</span><span class="va">delhi_wards</span><span class="op">)</span>,</span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">nearest_winter_km</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">delta</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="co"># Marginal rugs show density distribution</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_rug.html" class="external-link">geom_rug</a></span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">0.3</span>, color <span class="op">=</span> <span class="st">"grey40"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>color <span class="op">=</span> <span class="va">nearest_winter_km</span><span class="op">)</span>, size <span class="op">=</span> <span class="fl">3</span>, alpha <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_smooth.html" class="external-link">geom_smooth</a></span><span class="op">(</span>method <span class="op">=</span> <span class="st">"loess"</span>, se <span class="op">=</span> <span class="cn">TRUE</span>, color <span class="op">=</span> <span class="st">"firebrick"</span>, fill <span class="op">=</span> <span class="st">"pink"</span>, alpha <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_color_distiller</a></span><span class="op">(</span></span>
-<span>    palette <span class="op">=</span> <span class="st">"YlOrRd"</span>, <span class="co"># Yellow to Red is more intuitive for "distance/warning"</span></span>
-<span>    direction <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>    name <span class="op">=</span> <span class="st">"Distance (km)"</span></span>
-<span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="co"># Fix the Guide here</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guides.html" class="external-link">guides</a></span><span class="op">(</span>color <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_colourbar.html" class="external-link">guide_colorbar</a></span><span class="op">(</span>barwidth <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">12</span>, <span class="st">"lines"</span><span class="op">)</span>, </span>
-<span>                                 barheight <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="st">"lines"</span><span class="op">)</span>,</span>
-<span>                                 title.position <span class="op">=</span> <span class="st">"top"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">11</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"top"</span>, </span>
-<span>        panel.grid.minor <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
-<img src="delhi_pm2.5_analysis_files/figure-html/scatter-2.png" class="r-plt" alt="Relationship between sensor distance and ground-satellite disagreement across 273 Delhi wards. LOESS fit captures non-linear trend. An upward slope confirms that wards further from sensors show larger disagreement — supporting the case for expanding the monitoring network." width="100%"><p class="caption">
-Relationship between sensor distance and ground-satellite disagreement
-across 273 Delhi wards. LOESS fit captures non-linear trend. An upward
-slope confirms that wards further from sensors show larger disagreement
-— supporting the case for expanding the monitoring network.
-</p>
-</div>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggsave</a></span><span class="op">(</span><span class="st">"fig6_distance_vs_disagreement.png"</span>, width <span class="op">=</span> <span class="fl">9</span>, height <span class="op">=</span> <span class="fl">5</span>, dpi <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></span></code></pre></div>
 <hr>
 </div>
 </div>

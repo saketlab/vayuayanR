@@ -699,7 +699,7 @@ ggplot() +
   # CPCB station locations
   geom_sf(
     data  = station_ground_sf,
-    color = "black", fill = "tan2",
+    color = "black", fill = "yellow",
     size  = 2.5, shape = 21, alpha=0.7
   ) +
   scale_fill_gradientn(
@@ -811,7 +811,6 @@ plot tests that relationship directly using a LOESS fit to capture any
 non-linear pattern.
 
 ``` r
-# Pearson correlation between distance and absolute delta
 cor_val <- cor(
   delhi_wards$nearest_winter_km,
   abs(delhi_wards$delta),
@@ -824,10 +823,12 @@ ggplot(
   data = sf::st_drop_geometry(delhi_wards),
   aes(x = nearest_winter_km, y = abs(delta))
 ) +
-  geom_point(aes(color = nearest_winter_km), size = 3, alpha = 0.8) +
-  # LOESS fit — captures non-linear relationship better than linear
-  geom_smooth(method = "loess", se = TRUE, color = "grey30", linewidth = 0.8) +
-  # Annotate with Pearson r
+  geom_rug(alpha = 0.3, color = "grey40") +
+  geom_point(aes(color = nearest_winter_km), size = 3, alpha = 0.7) +
+  geom_smooth(
+    method = "loess", se = TRUE,
+    color = "firebrick", fill = "pink", alpha = 0.2
+  ) +
   annotate(
     "text",
     x     = max(delhi_wards$nearest_winter_km, na.rm = TRUE) * 0.55,
@@ -836,8 +837,9 @@ ggplot(
     size  = 4.5, color = "grey20"
   ) +
   scale_color_distiller(
-    palette = "RdYlGn", direction = -1,
-    name    = "Distance to\nnearest sensor (km)"
+    palette   = "YlOrRd",
+    direction = 1,
+    name      = "Distance (km)"
   ) +
   labs(
     title    = "Sensor Distance Predicts Ground-Satellite Disagreement",
@@ -846,64 +848,34 @@ ggplot(
     y        = expression(paste("|Delta| PM"[2.5] ~ (mu * g/m^3))),
     caption  = "November 2022 | Source: WUSTL ACAG V5GL04 + CPCB CAAQMS"
   ) +
-  theme_minimal(base_size = 13) +
+  theme_minimal(base_size = 11) +
   theme(
-    plot.title      = element_text(face = "bold"),
-    plot.subtitle   = element_text(size = 9.5, color = "grey40"),
-    legend.position = "top"
+    text               = element_text(family = "Arial"),
+    legend.position    = "top",
+    panel.grid.minor   = element_blank(),
+    plot.title         = element_text(face = "bold"),
+    plot.subtitle      = element_text(size = 9.5, color = "grey40")
   ) +
-guides(color = guide_colorbar(barwidth  = unit(15, "lines"), 
-                               barheight = unit(0.7, "lines")))
+  guides(color = guide_colorbar(
+    barwidth       = unit(12, "lines"),
+    barheight      = unit(0.5, "lines"),
+    title.position = "top"
+  ))
 ```
 
 ![Relationship between sensor distance and ground-satellite disagreement
-across 273 Delhi wards. LOESS fit captures non-linear trend. An upward
-slope confirms that wards further from sensors show larger disagreement
-— supporting the case for expanding the monitoring
-network.](delhi_pm2.5_analysis_files/figure-html/scatter-1.png)
+across 273 Delhi wards. LOESS fit captures non-linear trend. Rug marks
+show distribution of values along each
+axis.](delhi_pm2.5_analysis_files/figure-html/scatter-1.png)
 
 Relationship between sensor distance and ground-satellite disagreement
-across 273 Delhi wards. LOESS fit captures non-linear trend. An upward
-slope confirms that wards further from sensors show larger disagreement
-— supporting the case for expanding the monitoring network.
+across 273 Delhi wards. LOESS fit captures non-linear trend. Rug marks
+show distribution of values along each axis.
 
 ``` r
 
 ggsave("fig6_distance_vs_disagreement.png", width = 9, height = 5, dpi = 300)
-
-#or
-ggplot(
-  data = sf::st_drop_geometry(delhi_wards),
-  aes(x = nearest_winter_km, y = abs(delta))
-) +
-  # Marginal rugs show density distribution
-  geom_rug(alpha = 0.3, color = "grey40") +
-  geom_point(aes(color = nearest_winter_km), size = 3, alpha = 0.7) +
-  geom_smooth(method = "loess", se = TRUE, color = "firebrick", fill = "pink", alpha = 0.2) +
-  scale_color_distiller(
-    palette = "YlOrRd", # Yellow to Red is more intuitive for "distance/warning"
-    direction = 1,
-    name = "Distance (km)"
-  ) +
-  # Fix the Guide here
-  guides(color = guide_colorbar(barwidth = unit(12, "lines"), 
-                                 barheight = unit(0.5, "lines"),
-                                 title.position = "top")) +
-  theme_minimal(base_size = 11) +
-  theme(legend.position = "top", 
-        panel.grid.minor = element_blank())
 ```
-
-![Relationship between sensor distance and ground-satellite disagreement
-across 273 Delhi wards. LOESS fit captures non-linear trend. An upward
-slope confirms that wards further from sensors show larger disagreement
-— supporting the case for expanding the monitoring
-network.](delhi_pm2.5_analysis_files/figure-html/scatter-2.png)
-
-Relationship between sensor distance and ground-satellite disagreement
-across 273 Delhi wards. LOESS fit captures non-linear trend. An upward
-slope confirms that wards further from sensors show larger disagreement
-— supporting the case for expanding the monitoring network.
 
 ------------------------------------------------------------------------
 
