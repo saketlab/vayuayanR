@@ -1,4 +1,4 @@
-# Download PM2.5 NetCDF File
+# Download PM2.5 NetCDF file
 
 Download NetCDF file from AWS if not cached locally.
 

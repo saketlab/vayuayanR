@@ -1,4 +1,4 @@
-# Get List of States with AQI Data
+# Get list of states with AQI data
 
 Get list of states available for AQI data from CPCB.
 

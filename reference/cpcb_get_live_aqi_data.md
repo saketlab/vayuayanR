@@ -1,4 +1,4 @@
-# Get Live AQI Data
+# Get live AQI data
 
 Get live AQI data with flexible parameters. Automatically resolves
 station from coordinates or IP location if not provided.

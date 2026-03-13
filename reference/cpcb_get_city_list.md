@@ -1,4 +1,4 @@
-# Get List of Cities in a State
+# Get list of cities in a state
 
 Get list of cities in a given state from CPCB.
 

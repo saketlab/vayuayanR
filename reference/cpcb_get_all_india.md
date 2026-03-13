@@ -1,4 +1,4 @@
-# Get All India Monitoring Stations
+# Get all India monitoring stations
 
 Get all air quality monitoring stations in India from CPCB live
 dashboard.

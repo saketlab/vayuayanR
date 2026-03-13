@@ -10,7 +10,7 @@ processing.
 
 Useful links:
 
-- <https://saketkc.github.io/vayuayanR/>
+- <https://saket-choudhary.me/vayuayanR/>
 
 - <https://github.com/saketkc/vayuayanR>
 

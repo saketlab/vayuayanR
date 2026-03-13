@@ -1,4 +1,4 @@
-# Get Station List for a City
+# Get station list for a city
 
 Get station list available in given city from CPCB.
 

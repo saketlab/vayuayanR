@@ -1,4 +1,4 @@
-# Download City-Level AQI Data
+# Download city-level AQI data
 
 Download past year AQI data for a city from CPCB.
 

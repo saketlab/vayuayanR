@@ -1,6 +1,8 @@
-# Find Nearest Monitoring Station
+# Find nearest monitoring station
 
-Find nearest monitoring station to given coordinates or IP location.
+Find nearest CPCB monitoring station to given coordinates. If no
+coordinates provided, uses IP-based geolocation automatically. Returns
+station ID, name, and distance in kilometres.
 
 ## Usage
 

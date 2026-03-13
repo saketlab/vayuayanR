@@ -1,4 +1,4 @@
-# Clean Station Name
+# Clean station name
 
 Convert station name to clean underscore-separated format
 

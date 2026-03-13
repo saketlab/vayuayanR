@@ -81,6 +81,7 @@
 <li><a class="dropdown-item" href="../articles/introduction.html">Introduction to vayuayan</a></li>
     <li><a class="dropdown-item" href="../articles/delhi_pm2.5_analysis.html">Delhi PM2.5 Analysis (2022)</a></li>
     <li><a class="dropdown-item" href="../articles/mumbai_pm2.5_analysis.html">Mumbai PM2.5 Analysis (2022)</a></li>
+    <li><a class="dropdown-item" href="../articles/metro_wide_pm2.5_analysis_comparative_2022.html">PM2.5 Comparison Across Metros (2022)</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -135,7 +136,7 @@ or more.</p>
 integrates two independent data sources to analyse Delhi’s air quality
 in 2022, and uses them together to answer a key policy question:</p>
 <blockquote>
-<p><strong>Are the 40 CPCB ground monitoring stations distributed well
+<p><strong>Are the 46 CPCB ground monitoring stations distributed well
 enough to capture Delhi’s true spatial extent of pollution — or are
 there under-monitored regions where PM2.5 is being systematically
 missed?</strong></p>
@@ -149,12 +150,12 @@ on Delhi’s pollution cycle?</li>
 <strong>Spatial heatmap</strong> — where in Delhi is pollution
 highest?</li>
 <li>
-<strong>Station network</strong> — where are the 40 sensors located
+<strong>Station network</strong> — where are the 46 sensors located
 relative to pollution?</li>
 <li>
-<strong>Monitoring gap analysis</strong> — which wards are furthest
-from any sensor, and does that distance predict ground-satellite
-disagreement?</li>
+<strong>Monitoring gap analysis</strong> — which of the 290 wards
+are furthest from any sensor, and does that distance predict
+ground-satellite disagreement?</li>
 </ol>
 <hr>
 </div>
@@ -167,7 +168,7 @@ disagreement?</li>
 <p>Monthly PM2.5 estimates come from the Washington University in
 St. Louis Atmospheric Composition Analysis Group (WUSTL ACAG)
 <strong>V5GL04</strong> product — a globally gridded dataset at ~0.01°
-(~1km) resolution, derived from satellite aerosol optical depth
+(~1 km) resolution, derived from satellite aerosol optical depth
 retrievals, chemical transport modelling, and ground-level calibration
 (van Donkelaar et al., 2021). Files are in NetCDF format.</p>
 <blockquote>
@@ -182,23 +183,21 @@ This vignette uses 2022 throughout.</p>
 <p>Daily city-level and per-station PM2.5 readings are fetched from the
 Central Pollution Control Board (CPCB) data repository using
 <code><a href="../reference/cpcb_download_city_data.html">cpcb_download_city_data()</a></code> and
-<code><a href="../reference/cpcb_download_station_data.html">cpcb_download_station_data()</a></code>. Delhi has 40 operational
+<code><a href="../reference/cpcb_download_station_data.html">cpcb_download_station_data()</a></code>. Delhi has 46 operational
 Continuous Ambient Air Quality Monitoring Stations (CAAQMS) managed by
 DPCC, CPCB, IMD, and IITM. Station coordinates are obtained via
-cpcb_add_coords(), which queries the CPCB live feed directly, the same
-source used by the Python vayuayan package. Nominatim is used as a
-fallback only for stations temporarily absent from the live feed.</p>
+<code><a href="../reference/cpcb_add_coords.html">cpcb_add_coords()</a></code>, which queries the CPCB live feed
+directly. Nominatim is used as a fallback only for stations temporarily
+absent from the live feed.</p>
 </div>
 <div class="section level3">
 <h3 id="spatial-units">Spatial Units<a class="anchor" aria-label="anchor" href="#spatial-units"></a>
 </h3>
-<p>The GeoJSON boundary file (<code>DELHI.geojson</code>) contains
-<strong>273 Municipal Corporation of Delhi (MCD) wards</strong> spanning
-the full Delhi NCT. All spatial analysis is conducted at ward level.
-Note: the <code>districtname</code> column in the source GeoJSON is
-unreliable — all 273 wards are coded as “South Delhi” despite the data
-covering the full city. The outer Delhi NCT boundary (union of all
-wards) is used as the reference overlay on all maps.</p>
+<p>Ward boundaries are from the <strong>BharatViz</strong> Delhi ward
+dataset (<code>delhi_bharat_viz_wards.geojson</code>) — 290 wards with
+full Delhi coverage including the New Delhi Municipal Council (NDMC)
+area, sourced from <code>bharatviz.saketlab.org</code>. This single
+boundary file is used for all spatial analyses in this vignette.</p>
 </div>
 <div class="section level3">
 <h3 id="comparison-caveat">Comparison Caveat<a class="anchor" aria-label="anchor" href="#comparison-caveat"></a>
@@ -206,7 +205,7 @@ wards) is used as the reference overlay on all maps.</p>
 <p>These two data sources measure PM2.5 differently:</p>
 <ul>
 <li>
-<strong>Satellite</strong> = spatial mean over an entire area (~1km
+<strong>Satellite</strong> = spatial mean over an entire area (~1 km
 pixels)</li>
 <li>
 <strong>Ground</strong> = point measurement at one physical
@@ -223,8 +222,9 @@ aggregated to monthly means for fair temporal comparison.</p>
 <h2 id="setup">Setup<a class="anchor" aria-label="anchor" href="#setup"></a>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># pacman handles installation + loading in one step</span></span>
-<span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="st"><a href="https://github.com/trinker/pacman" class="external-link">"pacman"</a></span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"pacman"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="st"><a href="https://github.com/trinker/pacman" class="external-link">"pacman"</a></span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"pacman"</span>, repos <span class="op">=</span> <span class="st">"https://cloud.r-project.org"</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
 <span></span>
 <span><span class="fu">pacman</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/pacman/man/p_load.html" class="external-link">p_load</a></span><span class="op">(</span></span>
 <span>  <span class="va">vayuayan</span>,      <span class="co"># CPCB data download + geocoding</span></span>
@@ -234,75 +234,71 @@ aggregated to monthly means for fair temporal comparison.</p>
 <span>  <span class="va">sf</span>,            <span class="co"># vector spatial data</span></span>
 <span>  <span class="va">tidyterra</span>,     <span class="co"># ggplot2 + terra integration (geom_spatraster)</span></span>
 <span>  <span class="va">exactextractr</span>, <span class="co"># area-weighted raster extraction to polygons</span></span>
-<span><span class="va">ncdf4</span>,         <span class="co"># reading NetCDF files directly</span></span>
-<span><span class="va">khroma</span>         <span class="co"># diverging colour palettes</span></span>
+<span>  <span class="va">ncdf4</span>,         <span class="co"># reading NetCDF files directly</span></span>
+<span>  <span class="va">khroma</span>,        <span class="co"># diverging colour palettes</span></span>
+<span>  <span class="va">stringr</span>        <span class="co"># string cleaning</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Absolute path — works both interactively and when knitting</span></span>
+<span><span class="va">vignettes_dir</span> <span class="op">&lt;-</span> <span class="st">"/NAS/darakshann/vayuayanR/vignettes"</span></span>
+<span></span>
+<span><span class="va">dirs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"data/delhi"</span>, <span class="st">"figures/delhi"</span>, <span class="st">"station_data"</span><span class="op">)</span></span>
+<span><span class="kw">for</span> <span class="op">(</span><span class="va">d</span> <span class="kw">in</span> <span class="va">dirs</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">vignettes_dir</span>, <span class="va">d</span><span class="op">)</span>,</span>
+<span>                            recursive <span class="op">=</span> <span class="cn">TRUE</span>, showWarnings <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">data_path</span>    <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">f</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">vignettes_dir</span>, <span class="st">"data/delhi"</span>,    <span class="va">f</span><span class="op">)</span></span>
+<span><span class="va">fig_path</span>     <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">f</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">vignettes_dir</span>, <span class="st">"figures/delhi"</span>, <span class="va">f</span><span class="op">)</span></span>
+<span><span class="va">station_path</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">f</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">vignettes_dir</span>, <span class="st">"station_data"</span>,  <span class="va">f</span><span class="op">)</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="helper-functions">Helper Functions<a class="anchor" aria-label="anchor" href="#helper-functions"></a>
 </h3>
 <p>The V5GL04 NetCDF files store data in <code>[lon, lat]</code> order —
 the reverse of what <code>terra</code> expects
-(<code>[lat, lon]</code>). Loading the entire 121MB global array just to
-extract Delhi is extremely slow (~30 minutes for 12 months). These two
-helpers read only the pixels covering Delhi’s bounding box, making
-extraction near-instant.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># read_v5gl04_fast(): returns a single mean PM2.5 value for the shape</span></span>
-<span><span class="co"># Used for the monthly time series (Section 1)</span></span>
-<span><span class="va">read_v5gl04_fast</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">nc_path</span>, <span class="va">shape</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">bbox</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_bbox.html" class="external-link">st_bbox</a></span><span class="op">(</span><span class="va">shape</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="va">nc</span>   <span class="op">&lt;-</span> <span class="fu">ncdf4</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ncdf4/man/nc_open.html" class="external-link">nc_open</a></span><span class="op">(</span><span class="va">nc_path</span><span class="op">)</span></span>
-<span>  <span class="va">lons</span> <span class="op">&lt;-</span> <span class="fu">ncdf4</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ncdf4/man/ncvar_get.html" class="external-link">ncvar_get</a></span><span class="op">(</span><span class="va">nc</span>, <span class="st">"lon"</span><span class="op">)</span></span>
-<span>  <span class="va">lats</span> <span class="op">&lt;-</span> <span class="fu">ncdf4</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ncdf4/man/ncvar_get.html" class="external-link">ncvar_get</a></span><span class="op">(</span><span class="va">nc</span>, <span class="st">"lat"</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="co"># Find only the lon/lat indices that fall within Delhi's bounding box</span></span>
+(<code>[lat, lon]</code>). Loading the entire 121 MB global array just
+to extract Delhi is extremely slow. These two helpers read only the
+pixels covering Delhi’s bounding box, making extraction
+near-instant.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">read_v5gl04_fast</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">nc_path</span>, <span class="va">shape</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">bbox</span>    <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_bbox.html" class="external-link">st_bbox</a></span><span class="op">(</span><span class="va">shape</span><span class="op">)</span></span>
+<span>  <span class="va">nc</span>      <span class="op">&lt;-</span> <span class="fu">ncdf4</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ncdf4/man/nc_open.html" class="external-link">nc_open</a></span><span class="op">(</span><span class="va">nc_path</span><span class="op">)</span></span>
+<span>  <span class="va">lons</span>    <span class="op">&lt;-</span> <span class="fu">ncdf4</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ncdf4/man/ncvar_get.html" class="external-link">ncvar_get</a></span><span class="op">(</span><span class="va">nc</span>, <span class="st">"lon"</span><span class="op">)</span></span>
+<span>  <span class="va">lats</span>    <span class="op">&lt;-</span> <span class="fu">ncdf4</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ncdf4/man/ncvar_get.html" class="external-link">ncvar_get</a></span><span class="op">(</span><span class="va">nc</span>, <span class="st">"lat"</span><span class="op">)</span></span>
 <span>  <span class="va">lon_idx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">lons</span> <span class="op">&gt;=</span> <span class="va">bbox</span><span class="op">[</span><span class="st">"xmin"</span><span class="op">]</span> <span class="op">&amp;</span> <span class="va">lons</span> <span class="op">&lt;=</span> <span class="va">bbox</span><span class="op">[</span><span class="st">"xmax"</span><span class="op">]</span><span class="op">)</span></span>
 <span>  <span class="va">lat_idx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">lats</span> <span class="op">&gt;=</span> <span class="va">bbox</span><span class="op">[</span><span class="st">"ymin"</span><span class="op">]</span> <span class="op">&amp;</span> <span class="va">lats</span> <span class="op">&lt;=</span> <span class="va">bbox</span><span class="op">[</span><span class="st">"ymax"</span><span class="op">]</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="co"># Read only that small subset (~50x50 pixels) instead of the full global array</span></span>
-<span>  <span class="va">delhi_data</span> <span class="op">&lt;-</span> <span class="fu">ncdf4</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ncdf4/man/ncvar_get.html" class="external-link">ncvar_get</a></span><span class="op">(</span></span>
+<span>  <span class="va">data</span>    <span class="op">&lt;-</span> <span class="fu">ncdf4</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ncdf4/man/ncvar_get.html" class="external-link">ncvar_get</a></span><span class="op">(</span></span>
 <span>    <span class="va">nc</span>, <span class="st">"GWRPM25"</span>,</span>
 <span>    start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">lon_idx</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">lat_idx</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>    count <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">lon_idx</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">lat_idx</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span>  <span class="fu">ncdf4</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ncdf4/man/nc_close.html" class="external-link">nc_close</a></span><span class="op">(</span><span class="va">nc</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">delhi_data</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">data</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
-<span><span class="co"># load_v5gl04_rast(): returns a terra SpatRaster cropped to Delhi</span></span>
-<span><span class="co"># Used when we need the full spatial raster (Sections 2, 3, 4)</span></span>
 <span><span class="va">load_v5gl04_rast</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">year</span>, <span class="va">month</span>, <span class="va">shape</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">nc_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span></span>
 <span>    <span class="st">"/NAS/climatehealth/WUSTL_PM2.5/V5GL04/Global/Monthly/V5GL04.HybridPM25.Global.%04d%02d-%04d%02d.nc"</span>,</span>
 <span>    <span class="va">year</span>, <span class="va">month</span>, <span class="va">year</span>, <span class="va">month</span></span>
 <span>  <span class="op">)</span></span>
-<span>  <span class="va">bbox</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_bbox.html" class="external-link">st_bbox</a></span><span class="op">(</span><span class="va">shape</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="va">nc</span>   <span class="op">&lt;-</span> <span class="fu">ncdf4</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ncdf4/man/nc_open.html" class="external-link">nc_open</a></span><span class="op">(</span><span class="va">nc_path</span><span class="op">)</span></span>
-<span>  <span class="va">lons</span> <span class="op">&lt;-</span> <span class="fu">ncdf4</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ncdf4/man/ncvar_get.html" class="external-link">ncvar_get</a></span><span class="op">(</span><span class="va">nc</span>, <span class="st">"lon"</span><span class="op">)</span></span>
-<span>  <span class="va">lats</span> <span class="op">&lt;-</span> <span class="fu">ncdf4</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ncdf4/man/ncvar_get.html" class="external-link">ncvar_get</a></span><span class="op">(</span><span class="va">nc</span>, <span class="st">"lat"</span><span class="op">)</span></span>
-<span></span>
+<span>  <span class="va">bbox</span>    <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_bbox.html" class="external-link">st_bbox</a></span><span class="op">(</span><span class="va">shape</span><span class="op">)</span></span>
+<span>  <span class="va">nc</span>      <span class="op">&lt;-</span> <span class="fu">ncdf4</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ncdf4/man/nc_open.html" class="external-link">nc_open</a></span><span class="op">(</span><span class="va">nc_path</span><span class="op">)</span></span>
+<span>  <span class="va">lons</span>    <span class="op">&lt;-</span> <span class="fu">ncdf4</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ncdf4/man/ncvar_get.html" class="external-link">ncvar_get</a></span><span class="op">(</span><span class="va">nc</span>, <span class="st">"lon"</span><span class="op">)</span></span>
+<span>  <span class="va">lats</span>    <span class="op">&lt;-</span> <span class="fu">ncdf4</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ncdf4/man/ncvar_get.html" class="external-link">ncvar_get</a></span><span class="op">(</span><span class="va">nc</span>, <span class="st">"lat"</span><span class="op">)</span></span>
 <span>  <span class="va">lon_idx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">lons</span> <span class="op">&gt;=</span> <span class="va">bbox</span><span class="op">[</span><span class="st">"xmin"</span><span class="op">]</span> <span class="op">&amp;</span> <span class="va">lons</span> <span class="op">&lt;=</span> <span class="va">bbox</span><span class="op">[</span><span class="st">"xmax"</span><span class="op">]</span><span class="op">)</span></span>
 <span>  <span class="va">lat_idx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">lats</span> <span class="op">&gt;=</span> <span class="va">bbox</span><span class="op">[</span><span class="st">"ymin"</span><span class="op">]</span> <span class="op">&amp;</span> <span class="va">lats</span> <span class="op">&lt;=</span> <span class="va">bbox</span><span class="op">[</span><span class="st">"ymax"</span><span class="op">]</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="va">delhi_data</span> <span class="op">&lt;-</span> <span class="fu">ncdf4</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ncdf4/man/ncvar_get.html" class="external-link">ncvar_get</a></span><span class="op">(</span></span>
+<span>  <span class="va">data</span>    <span class="op">&lt;-</span> <span class="fu">ncdf4</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ncdf4/man/ncvar_get.html" class="external-link">ncvar_get</a></span><span class="op">(</span></span>
 <span>    <span class="va">nc</span>, <span class="st">"GWRPM25"</span>,</span>
 <span>    start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">lon_idx</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">lat_idx</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>    count <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">lon_idx</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">lat_idx</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span>  <span class="fu">ncdf4</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ncdf4/man/nc_close.html" class="external-link">nc_close</a></span><span class="op">(</span><span class="va">nc</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="co"># Build a raster from the Delhi subset</span></span>
-<span>  <span class="co"># V5GL04 stores [lon, lat] — transpose and flip vertically to get [lat, lon]</span></span>
 <span>  <span class="va">r</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span></span>
 <span>    nrows <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">lat_idx</span><span class="op">)</span>, ncols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">lon_idx</span><span class="op">)</span>,</span>
 <span>    xmin  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">lons</span><span class="op">[</span><span class="va">lon_idx</span><span class="op">]</span><span class="op">)</span>, xmax <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">lons</span><span class="op">[</span><span class="va">lon_idx</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>    ymin  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">lats</span><span class="op">[</span><span class="va">lat_idx</span><span class="op">]</span><span class="op">)</span>, ymax <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">lats</span><span class="op">[</span><span class="va">lat_idx</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>    crs   <span class="op">=</span> <span class="st">"EPSG:4326"</span></span>
 <span>  <span class="op">)</span></span>
-<span>  <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/values.html" class="external-link">values</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="va">delhi_data</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="va">delhi_data</span><span class="op">)</span><span class="op">)</span><span class="op">:</span><span class="fl">1</span>, <span class="op">]</span></span>
+<span>  <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/values.html" class="external-link">values</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span><span class="op">)</span><span class="op">:</span><span class="fl">1</span>, <span class="op">]</span></span>
 <span>  <span class="va">r</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <hr>
@@ -314,44 +310,22 @@ extraction near-instant.</p>
 <div class="section level3">
 <h3 id="seasonal-trend-do-satellite-and-ground-data-agree">1. Seasonal Trend: Do Satellite and Ground Data Agree?<a class="anchor" aria-label="anchor" href="#seasonal-trend-do-satellite-and-ground-data-agree"></a>
 </h3>
-<p>The first question is simple: do these two independent data sources
-tell the same seasonal story? If they agree on <em>when</em> pollution
-peaks and troughs, we can trust them both as complementary sources for
-the spatial analysis that follows.</p>
 <div class="section level4">
 <h4 id="ground-data-city-level-monthly-pm2-5">Ground Data: City-Level Monthly PM2.5<a class="anchor" aria-label="anchor" href="#ground-data-city-level-monthly-pm2-5"></a>
 </h4>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Download city-level daily PM2.5 for all of Delhi, 2022</span></span>
-<span><span class="co"># Returns a wide-format CSV: rows = days, columns = months</span></span>
-<span><span class="fu"><a href="../reference/cpcb_download_city_data.html">cpcb_download_city_data</a></span><span class="op">(</span></span>
-<span>  city          <span class="op">=</span> <span class="st">"Delhi"</span>,</span>
-<span>  year          <span class="op">=</span> <span class="fl">2022</span>,</span>
-<span>  save_location <span class="op">=</span> <span class="st">"delhi_aqi_2022.csv"</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt; 2022 </span></span>
-<span><span class="co">#&gt; AQI_daily/city_level/delhi/2022/delhi_2022.xlsx </span></span>
-<span><span class="co">#&gt; File Saved to mentioned location</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 13</span></span></span>
-<span><span class="co">#&gt;     Day January February March April   May  June  July August September October</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>     1     362      347   170   218   256   322    76     71       121     186</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>     2     404      319   225   226   218   202    95     84       110     181</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>     3     387      321   178   245   227   240    76    122       119     128</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>     4     378      152   199   262   269   227   113    112       115     150</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>     5     397      224   115   233   146   215   161     72       102     211</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span>     6     258      285   162   248   273   195   104     98       119      79</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 2 more variables: November &lt;dbl&gt;, December &lt;dbl&gt;</span></span></span>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="fu">data_path</span><span class="op">(</span><span class="st">"delhi_aqi_2022.csv"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="../reference/cpcb_download_city_data.html">cpcb_download_city_data</a></span><span class="op">(</span></span>
+<span>    city          <span class="op">=</span> <span class="st">"Delhi"</span>,</span>
+<span>    year          <span class="op">=</span> <span class="fl">2022</span>,</span>
+<span>    save_location <span class="op">=</span> <span class="fu">data_path</span><span class="op">(</span><span class="st">"delhi_aqi_2022.csv"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">}</span></span>
 <span></span>
-<span><span class="va">delhi_wide</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="st">"delhi_aqi_2022.csv"</span><span class="op">)</span></span>
+<span><span class="va">delhi_wide</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="fu">data_path</span><span class="op">(</span><span class="st">"delhi_aqi_2022.csv"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Reshape wide → long and compute monthly mean across all stations</span></span>
 <span><span class="va">delhi_ground</span> <span class="op">&lt;-</span> <span class="va">delhi_wide</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html" class="external-link">pivot_longer</a></span><span class="op">(</span></span>
-<span>    cols      <span class="op">=</span> <span class="op">-</span><span class="va">Day</span>,</span>
-<span>    names_to  <span class="op">=</span> <span class="st">"Month_Name"</span>,</span>
-<span>    values_to <span class="op">=</span> <span class="st">"ground_pm25"</span></span>
-<span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html" class="external-link">pivot_longer</a></span><span class="op">(</span>cols <span class="op">=</span> <span class="op">-</span><span class="va">Day</span>, names_to <span class="op">=</span> <span class="st">"Month_Name"</span>, values_to <span class="op">=</span> <span class="st">"ground_pm25"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>month <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/match.html" class="external-link">match</a></span><span class="op">(</span><span class="va">Month_Name</span>, <span class="va">month.name</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">ground_pm25</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">month</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -377,12 +351,12 @@ the spatial analysis that follows.</p>
 <div class="section level4">
 <h4 id="satellite-data-monthly-spatial-mean-over-delhi">Satellite Data: Monthly Spatial Mean over Delhi<a class="anchor" aria-label="anchor" href="#satellite-data-monthly-spatial-mean-over-delhi"></a>
 </h4>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Load Delhi boundary — used for spatial subsetting throughout this vignette</span></span>
-<span><span class="va">delhi_shape</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html" class="external-link">st_read</a></span><span class="op">(</span><span class="st">"/NAS/darakshann/DELHI.geojson"</span>, quiet <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Load BharatViz ward boundary — single boundary used throughout this vignette</span></span>
+<span><span class="va">delhi_shape</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html" class="external-link">st_read</a></span><span class="op">(</span></span>
+<span>  <span class="st">"/NAS/darakshann/geojson/delhi_bharat_viz_wards.geojson"</span>, quiet <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/valid.html" class="external-link">st_make_valid</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Extract mean satellite PM2.5 for Delhi for each month</span></span>
-<span><span class="co"># Each file is ~121MB — the fast helper reads only Delhi's pixels (~seconds each)</span></span>
 <span><span class="va">delhi_sat_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html" class="external-link">map_dfr</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">12</span>, <span class="kw">function</span><span class="op">(</span><span class="va">m</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">nc_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span></span>
 <span>    <span class="st">"/NAS/climatehealth/WUSTL_PM2.5/V5GL04/Global/Monthly/V5GL04.HybridPM25.Global.2022%02d-2022%02d.nc"</span>,</span>
@@ -391,42 +365,40 @@ the spatial analysis that follows.</p>
 <span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span>month <span class="op">=</span> <span class="va">m</span>, sat_pm25 <span class="op">=</span> <span class="fu">read_v5gl04_fast</span><span class="op">(</span><span class="va">nc_file</span>, <span class="va">delhi_shape</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Join ground and satellite into one table for comparison</span></span>
 <span><span class="va">delhi_final</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">inner_join</a></span><span class="op">(</span><span class="va">delhi_ground</span>, <span class="va">delhi_sat_df</span>, by <span class="op">=</span> <span class="st">"month"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">delhi_final</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 12 × 3</span></span></span>
 <span><span class="co">#&gt;    month ground_pm25 sat_pm25</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>     1       279.     151. </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>     2       225.     115. </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>     1       279.     150. </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>     2       225.     114. </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>     3       217.     108. </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>     4       255.      98.1</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>     4       255.      97.9</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>     5       212.      78.4</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>     6       190.      71.3</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>     6       190.      71.4</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>     7        87.4     36.1</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>     8        93.4     35.6</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>     9       104.      37.6</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>    10       210.      72.8</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>     9       104.      37.5</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>    10       210.      72.7</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">11</span>    11       321.     167. </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">12</span>    12       319.     176.</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="seasonal-line-chart">Seasonal Line Chart<a class="anchor" aria-label="anchor" href="#seasonal-line-chart"></a>
 </h4>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">delhi_final</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">month</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">ground_pm25</span>, color <span class="op">=</span> <span class="st">"CPCB Ground"</span><span class="op">)</span>, linewidth <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">sat_pm25</span>, color <span class="op">=</span> <span class="st">"WUSTL Satellite"</span><span class="op">)</span>,</span>
-<span>    linewidth <span class="op">=</span> <span class="fl">0.85</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span></span>
-<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">sat_pm25</span>, color <span class="op">=</span> <span class="st">"WUSTL Satellite"</span><span class="op">)</span>,</span>
+<span>            linewidth <span class="op">=</span> <span class="fl">0.85</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">ground_pm25</span>, color <span class="op">=</span> <span class="st">"CPCB Ground"</span><span class="op">)</span>, size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">sat_pm25</span>,    color <span class="op">=</span> <span class="st">"WUSTL Satellite"</span><span class="op">)</span>, size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="co"># WHO reference lines</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="fl">5</span>,  linetype <span class="op">=</span> <span class="st">"dotted"</span>, color <span class="op">=</span> <span class="st">"darkgreen"</span>, linewidth <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="fl">15</span>, linetype <span class="op">=</span> <span class="st">"dotted"</span>, color <span class="op">=</span> <span class="st">"orange"</span>,    linewidth <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/annotate.html" class="external-link">annotate</a></span><span class="op">(</span><span class="st">"text"</span>, x <span class="op">=</span> <span class="fl">1</span>, y <span class="op">=</span> <span class="fl">18</span>, label <span class="op">=</span> <span class="st">"WHO 24hr limit (15 µg/m³)"</span>,  size <span class="op">=</span> <span class="fl">3</span>, color <span class="op">=</span> <span class="st">"tan4"</span>,    hjust <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/annotate.html" class="external-link">annotate</a></span><span class="op">(</span><span class="st">"text"</span>, x <span class="op">=</span> <span class="fl">1</span>, y <span class="op">=</span> <span class="fl">8</span>,  label <span class="op">=</span> <span class="st">"WHO annual limit (5 µg/m³)"</span>, size <span class="op">=</span> <span class="fl">3</span>, color <span class="op">=</span> <span class="st">"darkgreen"</span>, hjust <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/annotate.html" class="external-link">annotate</a></span><span class="op">(</span><span class="st">"text"</span>, x <span class="op">=</span> <span class="fl">1</span>, y <span class="op">=</span> <span class="fl">18</span>, label <span class="op">=</span> <span class="st">"WHO 24hr limit (15 µg/m³)"</span>,</span>
+<span>           size <span class="op">=</span> <span class="fl">3</span>, color <span class="op">=</span> <span class="st">"tan4"</span>, hjust <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/annotate.html" class="external-link">annotate</a></span><span class="op">(</span><span class="st">"text"</span>, x <span class="op">=</span> <span class="fl">1</span>, y <span class="op">=</span> <span class="fl">8</span>,  label <span class="op">=</span> <span class="st">"WHO annual limit (5 µg/m³)"</span>,</span>
+<span>           size <span class="op">=</span> <span class="fl">3</span>, color <span class="op">=</span> <span class="st">"darkgreen"</span>, hjust <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>breaks <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">12</span>, labels <span class="op">=</span> <span class="va">month.abb</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>    <span class="st">"CPCB Ground"</span>     <span class="op">=</span> <span class="st">"#d77027ff"</span>,</span>
@@ -441,24 +413,23 @@ the spatial analysis that follows.</p>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">11</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span></span>
-<span>    text <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>family <span class="op">=</span> <span class="st">"Arial"</span><span class="op">)</span>,</span>
+<span>    text               <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>family <span class="op">=</span> <span class="st">"Arial"</span><span class="op">)</span>,</span>
 <span>    panel.grid.major.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>    panel.grid.minor <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    panel.grid.minor   <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>    panel.grid.major.y <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_line</a></span><span class="op">(</span>linetype <span class="op">=</span> <span class="st">"dashed"</span>, color <span class="op">=</span> <span class="st">"grey85"</span><span class="op">)</span>,</span>
-<span>      legend.position <span class="op">=</span> <span class="st">"top"</span><span class="op">)</span> <span class="co">#+</span></span></code></pre></div>
+<span>    legend.position    <span class="op">=</span> <span class="st">"top"</span></span>
+<span>  <span class="op">)</span></span></code></pre></div>
 <div class="figure">
-<img src="delhi_pm2.5_analysis_files/figure-html/line-chart-1.png" class="r-plt" alt="Delhi 2022: Monthly PM2.5 from satellite and ground sources. Both sources agree on the seasonal pattern — peak in winter, trough in monsoon. Ground readings are consistently higher due to the point-to-area measurement difference described in Methods. Delhi exceeds WHO limits every single month." width="100%"><p class="caption">
+<img src="delhi_pm2.5_analysis_files/figure-html/line-chart-1.png" class="r-plt" alt="Delhi 2022: Monthly PM2.5 from satellite and ground sources. Both sources agree on the seasonal pattern — peak in winter, trough in monsoon. Ground readings are consistently higher due to the point-to-area measurement difference." width="100%"><p class="caption">
 Delhi 2022: Monthly PM2.5 from satellite and ground sources. Both
 sources agree on the seasonal pattern — peak in winter, trough in
 monsoon. Ground readings are consistently higher due to the
-point-to-area measurement difference described in Methods. Delhi exceeds
-WHO limits every single month.
+point-to-area measurement difference.
 </p>
 </div>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span>    <span class="co">#ggview::canvas(width=9, height = 6, dpi=300)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggsave</a></span><span class="op">(</span><span class="st">"fig1_seasonal_trend.png"</span>, width <span class="op">=</span> <span class="fl">9</span>, height <span class="op">=</span> <span class="fl">6</span>, dpi <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggsave</a></span><span class="op">(</span><span class="fu">fig_path</span><span class="op">(</span><span class="st">"fig1_seasonal_trend.png"</span><span class="op">)</span>, width <span class="op">=</span> <span class="fl">9</span>, height <span class="op">=</span> <span class="fl">6</span>, dpi <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></span></code></pre></div>
 <blockquote>
 <p><strong>Key finding:</strong> Both sources agree on the seasonal
 pattern — PM2.5 peaks sharply in October–January and drops during the
@@ -477,26 +448,13 @@ server.</p>
 <div class="section level3">
 <h3 id="where-is-pollution-highest-spatial-heatmap">2. Where Is Pollution Highest? Spatial Heatmap<a class="anchor" aria-label="anchor" href="#where-is-pollution-highest-spatial-heatmap"></a>
 </h3>
-<p>The city-level average masks important spatial variation. This
-heatmap shows satellite-estimated PM2.5 at ~1km resolution for November
-2022 — Delhi’s peak pollution month — revealing which parts of the city
-bear the highest burden. The outer Delhi NCT boundary is overlaid for
-geographic reference.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Load November 2022 as a spatial raster</span></span>
-<span><span class="co"># November = peak month due to crop burning + Diwali + temperature inversion</span></span>
-<span><span class="va">r_nov</span>             <span class="op">&lt;-</span> <span class="fu">load_v5gl04_rast</span><span class="op">(</span><span class="fl">2022</span>, <span class="fl">11</span>, <span class="va">delhi_shape</span><span class="op">)</span></span>
-<span><span class="va">delhi_raster_mask</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/mask.html" class="external-link">mask</a></span><span class="op">(</span><span class="va">r_nov</span>, <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/vect.html" class="external-link">vect</a></span><span class="op">(</span><span class="va">delhi_shape</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># NOTE: the districtname column in DELHI.geojson is unreliable —</span></span>
-<span><span class="co"># all 273 wards are coded as "South Delhi" despite spanning the full NCT.</span></span>
-<span><span class="co"># We therefore use the outer city boundary (union of all wards) as the</span></span>
-<span><span class="co"># reference overlay on all spatial maps instead of district boundaries.</span></span>
-<span><span class="va">delhi_city_boundary</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_combine.html" class="external-link">st_union</a></span><span class="op">(</span><span class="va">delhi_shape</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">r_nov</span>               <span class="op">&lt;-</span> <span class="fu">load_v5gl04_rast</span><span class="op">(</span><span class="fl">2022</span>, <span class="fl">11</span>, <span class="va">delhi_shape</span><span class="op">)</span></span>
+<span><span class="va">delhi_raster_mask</span>   <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/mask.html" class="external-link">mask</a></span><span class="op">(</span><span class="va">r_nov</span>, <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/vect.html" class="external-link">vect</a></span><span class="op">(</span><span class="va">delhi_shape</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">delhi_city_boundary</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_combine.html" class="external-link">st_union</a></span><span class="op">(</span><span class="va">delhi_shape</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">geom_spatraster</span><span class="op">(</span>data <span class="op">=</span> <span class="va">delhi_raster_mask</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="co"># Outer Delhi NCT boundary for geographic reference</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html" class="external-link">geom_sf</a></span><span class="op">(</span></span>
 <span>    data      <span class="op">=</span> <span class="va">delhi_city_boundary</span>,</span>
 <span>    fill      <span class="op">=</span> <span class="cn">NA</span>,</span>
@@ -509,37 +467,34 @@ geographic reference.</p>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
 <span>    title    <span class="op">=</span> <span class="st">"Spatial Distribution of PM2.5, Delhi"</span>,</span>
-<span>    subtitle <span class="op">=</span> <span class="st">"Satellite estimate: November 2022 | Black outline = Delhi NCT boundary"</span>,</span>
-<span>    caption  <span class="op">=</span> <span class="st">"Source: WUSTL ACAG V5GL04 | Resolution: ~1km"</span></span>
+<span>    subtitle <span class="op">=</span> <span class="st">"Satellite estimate: November 2022 | Blue outline = Delhi boundary"</span>,</span>
+<span>    caption  <span class="op">=</span> <span class="st">"Source: WUSTL ACAG V5GL04 | Resolution: ~1 km"</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">xlab</a></span><span class="op">(</span><span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ylab</a></span><span class="op">(</span><span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">11</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span></span>
-<span>    text <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>family <span class="op">=</span> <span class="st">"Arial"</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span></span>
+<span>    text             <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>family <span class="op">=</span> <span class="st">"Arial"</span><span class="op">)</span>,</span>
 <span>    panel.grid.major <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>    panel.grid.minor <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>    legend.position <span class="op">=</span> <span class="st">"top"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guides.html" class="external-link">guides</a></span><span class="op">(</span></span>
-<span>    fill <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_colourbar.html" class="external-link">guide_colorbar</a></span><span class="op">(</span></span>
-<span>      barwidth <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">10</span>, <span class="st">"lines"</span><span class="op">)</span>,</span>
-<span>      barheight <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">0.6</span>, <span class="st">"lines"</span><span class="op">)</span></span>
-<span>    <span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="co">#+</span></span></code></pre></div>
+<span>    legend.position  <span class="op">=</span> <span class="st">"top"</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guides.html" class="external-link">guides</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_colourbar.html" class="external-link">guide_colorbar</a></span><span class="op">(</span></span>
+<span>    barwidth  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">10</span>, <span class="st">"lines"</span><span class="op">)</span>,</span>
+<span>    barheight <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">0.6</span>, <span class="st">"lines"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
-<img src="delhi_pm2.5_analysis_files/figure-html/heatmap-1.png" class="r-plt" alt="Spatial PM2.5 distribution across Delhi NCT, November 2022. Black outline = Delhi city boundary. Peripheral wards show elevated PM2.5 relative to central Delhi — a pattern completely invisible from city-level averages." width="100%"><p class="caption">
-Spatial PM2.5 distribution across Delhi NCT, November 2022. Black
-outline = Delhi city boundary. Peripheral wards show elevated PM2.5
-relative to central Delhi — a pattern completely invisible from
-city-level averages.
+<img src="delhi_pm2.5_analysis_files/figure-html/heatmap-1.png" class="r-plt" alt="Spatial PM2.5 distribution across Delhi, November 2022. Blue outline = Delhi boundary. Peripheral areas show elevated PM2.5 relative to central Delhi." width="100%"><p class="caption">
+Spatial PM2.5 distribution across Delhi, November 2022. Blue outline =
+Delhi boundary. Peripheral areas show elevated PM2.5 relative to central
+Delhi.
 </p>
 </div>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span>    <span class="co">#ggview::canvas(width=8, height = 6, dpi=300)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggsave</a></span><span class="op">(</span><span class="st">"fig2_heatmap_nov2022.png"</span>, width <span class="op">=</span> <span class="fl">8</span>, height <span class="op">=</span> <span class="fl">6</span>, dpi <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggsave</a></span><span class="op">(</span><span class="fu">fig_path</span><span class="op">(</span><span class="st">"fig2_heatmap_nov2022.png"</span><span class="op">)</span>, width <span class="op">=</span> <span class="fl">8</span>, height <span class="op">=</span> <span class="fl">6</span>, dpi <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></span></code></pre></div>
 <blockquote>
 <p><strong>Key finding:</strong> Pollution is not uniform. Peripheral
-wards show elevated PM2.5 relative to central areas — yet these are
+areas show elevated PM2.5 relative to central Delhi — yet these are
 exactly the areas with fewer monitoring stations, as the next section
 shows.</p>
 </blockquote>
@@ -548,62 +503,45 @@ shows.</p>
 <div class="section level3">
 <h3 id="where-are-the-sensors-station-network-choropleth">3. Where Are the Sensors? Station Network Choropleth<a class="anchor" aria-label="anchor" href="#where-are-the-sensors-station-network-choropleth"></a>
 </h3>
-<p>Now we overlay the 40 CPCB station locations on the satellite PM2.5
-choropleth. The visual question: do stations cover the most polluted
-wards?</p>
 <div class="section level4">
 <h4 id="load-and-geocode-station-locations">Load and Geocode Station Locations<a class="anchor" aria-label="anchor" href="#load-and-geocode-station-locations"></a>
 </h4>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Fetch coordinates for all Delhi CPCB stations from CPCB API</span></span>
-<span><span class="co"># Cached to CSV, re-runs use cache instead of hitting the API again</span></span>
-<span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="st">"delhi_stations_with_coords.csv"</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">delhi_station_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="st">"delhi_stations_with_coords.csv"</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="fu">data_path</span><span class="op">(</span><span class="st">"delhi_stations_with_coords.csv"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">delhi_station_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="fu">data_path</span><span class="op">(</span><span class="st">"delhi_stations_with_coords.csv"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
 <span>  <span class="va">delhi_station_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cpcb_get_station_list.html">cpcb_get_station_list</a></span><span class="op">(</span><span class="st">"Delhi"</span><span class="op">)</span></span>
 <span>  <span class="va">delhi_station_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cpcb_add_coords.html">cpcb_add_coords</a></span><span class="op">(</span><span class="va">delhi_station_list</span><span class="op">)</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/utils/write.table.html" class="external-link">write.csv</a></span><span class="op">(</span><span class="va">delhi_station_list</span>, <span class="st">"delhi_stations_with_coords.csv"</span>, row.names <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/utils/write.table.html" class="external-link">write.csv</a></span><span class="op">(</span><span class="va">delhi_station_list</span>, <span class="fu">data_path</span><span class="op">(</span><span class="st">"delhi_stations_with_coords.csv"</span><span class="op">)</span>,</span>
+<span>            row.names <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="va">delhi_full_sf</span> <span class="op">&lt;-</span> <span class="va">delhi_station_list</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">lat</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span>coords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lon"</span>, <span class="st">"lat"</span><span class="op">)</span>, crs <span class="op">=</span> <span class="fl">4326</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span>coords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lon"</span>, <span class="st">"lat"</span><span class="op">)</span>, crs <span class="op">=</span> <span class="fl">4326</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">delhi_full_sf</span><span class="op">)</span>, <span class="st">"stations loaded\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; 47 stations loaded</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="choropleth-ward-level-pm2-5-station-locations">Choropleth: Ward-Level PM2.5 + Station Locations<a class="anchor" aria-label="anchor" href="#choropleth-ward-level-pm2-5-station-locations"></a>
 </h4>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Load the 273 MCD wards</span></span>
-<span><span class="va">delhi_wards</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html" class="external-link">st_read</a></span><span class="op">(</span><span class="st">"/NAS/darakshann/DELHI.geojson"</span>, quiet <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co"># Clean ward names, source data has \r\n artifacts in some rows</span></span>
-<span><span class="va">delhi_wards</span> <span class="op">&lt;-</span> <span class="va">delhi_wards</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>wardname <span class="op">=</span> <span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_trim.html" class="external-link">str_squish</a></span><span class="op">(</span></span>
-<span>    <span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_remove.html" class="external-link">str_remove_all</a></span><span class="op">(</span><span class="va">wardname</span>, <span class="st">"\r\n"</span><span class="op">)</span></span>
-<span>  <span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Area-weighted mean satellite PM2.5 per ward</span></span>
-<span><span class="co"># exact_extract is more accurate than simple centroid extraction for polygons</span></span>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># delhi_shape already loaded above — 290 BharatViz wards, full Delhi coverage</span></span>
+<span><span class="co"># Compute area-weighted mean satellite PM2.5 per ward</span></span>
+<span><span class="va">delhi_wards</span> <span class="op">&lt;-</span> <span class="va">delhi_shape</span></span>
 <span><span class="va">delhi_wards</span><span class="op">$</span><span class="va">sat_pm25</span> <span class="op">&lt;-</span> <span class="fu">exactextractr</span><span class="fu">::</span><span class="fu"><a href="https://isciences.gitlab.io/exactextractr/reference/exact_extract.html" class="external-link">exact_extract</a></span><span class="op">(</span></span>
 <span>  <span class="va">r_nov</span>, <span class="va">delhi_wards</span>, <span class="st">'mean'</span>, progress <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="co"># Wards filled by satellite PM2.5</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html" class="external-link">geom_sf</a></span><span class="op">(</span></span>
 <span>    data <span class="op">=</span> <span class="va">delhi_wards</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="va">sat_pm25</span><span class="op">)</span>,</span>
-<span>    color <span class="op">=</span> <span class="st">"white"</span>, linewidth <span class="op">=</span> <span class="fl">0.15</span></span>
+<span>    color <span class="op">=</span> <span class="st">"white"</span>, linewidth <span class="op">=</span> <span class="fl">0.1</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="co"># Outer city boundary for orientation</span></span>
-<span> <span class="co">#geom_sf(</span></span>
-<span> <span class="co">#  data      = delhi_city_boundary,</span></span>
-<span> <span class="co">#  fill      = NA,</span></span>
-<span> <span class="co"># color     = "royalblue4",</span></span>
-<span> <span class="co">#  linewidth = 0.3</span></span>
-<span> <span class="co">#) +</span></span>
-<span>  <span class="co"># CPCB station locations</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html" class="external-link">geom_sf</a></span><span class="op">(</span></span>
-<span>    data <span class="op">=</span> <span class="va">delhi_full_sf</span>, color <span class="op">=</span> <span class="st">"black"</span>,</span>
-<span>    fill <span class="op">=</span> <span class="st">"steelblue4"</span>, size <span class="op">=</span> <span class="fl">2.5</span>, shape <span class="op">=</span> <span class="fl">21</span>, alpha <span class="op">=</span> <span class="fl">0.85</span></span>
+<span>    data  <span class="op">=</span> <span class="va">delhi_full_sf</span>, color <span class="op">=</span> <span class="st">"black"</span>,</span>
+<span>    fill  <span class="op">=</span> <span class="st">"steelblue4"</span>, size <span class="op">=</span> <span class="fl">2.5</span>, shape <span class="op">=</span> <span class="fl">21</span>, alpha <span class="op">=</span> <span class="fl">0.85</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_fill_distiller</a></span><span class="op">(</span></span>
 <span>    palette   <span class="op">=</span> <span class="st">"YlOrRd"</span>,</span>
@@ -617,34 +555,31 @@ wards?</p>
 <span>    caption  <span class="op">=</span> <span class="st">"November 2022 | Source: WUSTL ACAG V5GL04 + CPCB CAAQMS"</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">xlab</a></span><span class="op">(</span><span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ylab</a></span><span class="op">(</span><span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">11</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span></span>
-<span>    text <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>family <span class="op">=</span> <span class="st">"Arial"</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">11</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span></span>
+<span>    text             <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>family <span class="op">=</span> <span class="st">"Arial"</span><span class="op">)</span>,</span>
 <span>    panel.grid.major <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>    panel.grid.minor <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>    legend.position <span class="op">=</span> <span class="st">"top"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guides.html" class="external-link">guides</a></span><span class="op">(</span></span>
-<span>    fill <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_colourbar.html" class="external-link">guide_colorbar</a></span><span class="op">(</span></span>
-<span>      barwidth <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">10</span>, <span class="st">"lines"</span><span class="op">)</span>,</span>
-<span>      barheight <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">0.6</span>, <span class="st">"lines"</span><span class="op">)</span></span>
-<span>    <span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="co">#+</span></span></code></pre></div>
+<span>    legend.position  <span class="op">=</span> <span class="st">"top"</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guides.html" class="external-link">guides</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_colourbar.html" class="external-link">guide_colorbar</a></span><span class="op">(</span></span>
+<span>    barwidth  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">10</span>, <span class="st">"lines"</span><span class="op">)</span>,</span>
+<span>    barheight <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">0.6</span>, <span class="st">"lines"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
-<img src="delhi_pm2.5_analysis_files/figure-html/choropleth-1.png" class="r-plt" alt="Ward-level satellite PM2.5 with CPCB station locations. Black outline = Delhi NCT boundary. Stations cluster in central Delhi. Several peripheral wards — some with elevated PM2.5 — are poorly served by the current network." width="100%"><p class="caption">
-Ward-level satellite PM2.5 with CPCB station locations. Black outline =
-Delhi NCT boundary. Stations cluster in central Delhi. Several
-peripheral wards — some with elevated PM2.5 — are poorly served by the
-current network.
+<img src="delhi_pm2.5_analysis_files/figure-html/choropleth-1.png" class="r-plt" alt="Ward-level satellite PM2.5 with CPCB station locations. Stations cluster in central Delhi; several peripheral wards with elevated PM2.5 are poorly served by the current network." width="100%"><p class="caption">
+Ward-level satellite PM2.5 with CPCB station locations. Stations cluster
+in central Delhi; several peripheral wards with elevated PM2.5 are
+poorly served by the current network.
 </p>
 </div>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span>    <span class="co">#ggview::canvas(width=8, height = 6, dpi=300)</span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggsave</a></span><span class="op">(</span><span class="st">"fig3_choropleth_stations.png"</span>, width <span class="op">=</span> <span class="fl">9</span>, height <span class="op">=</span> <span class="fl">7</span>, dpi <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggsave</a></span><span class="op">(</span><span class="fu">fig_path</span><span class="op">(</span><span class="st">"fig3_choropleth_stations.png"</span><span class="op">)</span>, width <span class="op">=</span> <span class="fl">9</span>, height <span class="op">=</span> <span class="fl">7</span>, dpi <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></span></code></pre></div>
 <blockquote>
 <p><strong>Key finding:</strong> Stations cluster in central and south
-Delhi. Several northern and western wards with relatively high PM2.5
-have sparse or no nearby sensor coverage. This motivates the gap
-analysis below.</p>
+Delhi. Several peripheral wards with relatively high PM2.5 have sparse
+or no nearby sensor coverage.</p>
 </blockquote>
 <hr>
 </div>
@@ -658,7 +593,7 @@ disagreement?</strong></p>
 <div class="section level4">
 <h4 id="concept">Concept<a class="anchor" aria-label="anchor" href="#concept"></a>
 </h4>
-<p>For each of the 273 MCD wards we:</p>
+<p>For each of the <strong>290 BharatViz wards</strong> we:</p>
 <ol style="list-style-type: decimal">
 <li>Find its geographic centroid</li>
 <li>Identify the nearest CPCB station and its winter ground PM2.5
@@ -667,27 +602,18 @@ reading</li>
 <li>Compute <strong>delta = satellite − nearest ground
 station</strong>
 </li>
-<li>Draw a line connecting centroid → nearest station to make the
-spatial relationship visually explicit</li>
+<li>Draw a line connecting centroid → nearest station</li>
 </ol>
-<p>A large delta in a ward far from its nearest station suggests that
-station may not be representative of that ward’s true pollution
-level.</p>
 </div>
 <div class="section level4">
 <h4 id="per-station-winter-ground-data">Per-Station Winter Ground Data<a class="anchor" aria-label="anchor" href="#per-station-winter-ground-data"></a>
 </h4>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Download per-station data for winter months: Oct, Nov, Dec, Jan</span></span>
-<span><span class="co"># Winter is the policy-relevant season — highest PM2.5, highest health risk</span></span>
-<span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.exists</a></span><span class="op">(</span><span class="st">"station_data"</span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="st">"station_data"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">station_raw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">delhi_station_list</span><span class="op">$</span><span class="va">value</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="op">{</span></span>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">station_raw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">delhi_station_list</span><span class="op">$</span><span class="va">value</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">id</span>   <span class="op">&lt;-</span> <span class="va">delhi_station_list</span><span class="op">$</span><span class="va">value</span><span class="op">[</span><span class="va">i</span><span class="op">]</span></span>
-<span>  <span class="va">file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"station_data/"</span>, <span class="va">id</span>, <span class="st">".csv"</span><span class="op">)</span></span>
+<span>  <span class="va">file</span> <span class="op">&lt;-</span> <span class="fu">station_path</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">id</span>, <span class="st">".csv"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span><span class="op">{</span></span>
-<span>    <span class="co"># Cache per-station files — download only if not already saved</span></span>
 <span>    <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">file</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>      <span class="fu"><a href="../reference/cpcb_download_station_data.html">cpcb_download_station_data</a></span><span class="op">(</span></span>
 <span>        station_id    <span class="op">=</span> <span class="va">id</span>,</span>
@@ -695,17 +621,19 @@ level.</p>
 <span>        save_location <span class="op">=</span> <span class="va">file</span></span>
 <span>      <span class="op">)</span></span>
 <span>    <span class="op">}</span></span>
-<span>    <span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="va">file</span><span class="op">)</span></span>
+<span>    <span class="va">df</span>      <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="va">file</span><span class="op">)</span></span>
+<span>    <span class="va">day_col</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span></span>
 <span></span>
 <span>    <span class="va">df</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>      <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html" class="external-link">pivot_longer</a></span><span class="op">(</span>cols <span class="op">=</span> <span class="op">-</span><span class="va">Day</span>, names_to <span class="op">=</span> <span class="st">"Month_Name"</span>, values_to <span class="op">=</span> <span class="st">"pm25"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>      <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html" class="external-link">pivot_longer</a></span><span class="op">(</span>cols      <span class="op">=</span> <span class="op">-</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/all_of.html" class="external-link">all_of</a></span><span class="op">(</span><span class="va">day_col</span><span class="op">)</span>,</span>
+<span>                   names_to  <span class="op">=</span> <span class="st">"Month_Name"</span>,</span>
+<span>                   values_to <span class="op">=</span> <span class="st">"pm25"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>      <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>month <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/match.html" class="external-link">match</a></span><span class="op">(</span><span class="va">Month_Name</span>, <span class="va">month.name</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>      <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">month</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">10</span>, <span class="fl">11</span>, <span class="fl">12</span><span class="op">)</span>, <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">pm25</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>      <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>ground_pm25 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">pm25</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>      <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>value <span class="op">=</span> <span class="va">id</span><span class="op">)</span></span>
 <span></span>
 <span>  <span class="op">}</span>, error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="co"># Skip stations that fail — CPCB data has occasional gaps</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"Skipped: "</span>, <span class="va">id</span><span class="op">)</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>value <span class="op">=</span> <span class="va">id</span>, ground_pm25 <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span></span>
 <span>  <span class="op">}</span><span class="op">)</span></span>
@@ -713,7 +641,6 @@ level.</p>
 <span></span>
 <span><span class="va">station_ground</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="va">station_raw</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Join ground readings with station coordinates</span></span>
 <span><span class="va">station_ground_sf</span> <span class="op">&lt;-</span> <span class="va">station_ground</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">ground_pm25</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="va">delhi_station_list</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">value</span>, <span class="va">lat</span>, <span class="va">lon</span><span class="op">)</span>, by <span class="op">=</span> <span class="st">"value"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -726,43 +653,27 @@ level.</p>
 <div class="section level4">
 <h4 id="compute-delta-at-each-ward-centroid">Compute Delta at Each Ward Centroid<a class="anchor" aria-label="anchor" href="#compute-delta-at-each-ward-centroid"></a>
 </h4>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Step 1: Get ward centroids — geographic centre of each ward polygon</span></span>
-<span><span class="va">ward_centroids</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_unary.html" class="external-link">st_centroid</a></span><span class="op">(</span><span class="va">delhi_wards</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">ward_centroids</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_unary.html" class="external-link">st_centroid</a></span><span class="op">(</span><span class="va">delhi_wards</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Step 2: Extract satellite PM2.5 at each ward centroid</span></span>
-<span><span class="co"># terra::extract works with point geometries (not polygons)</span></span>
-<span><span class="va">sat_centroid_vals</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">r_nov</span>, <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/vect.html" class="external-link">vect</a></span><span class="op">(</span><span class="va">ward_centroids</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">delhi_wards</span><span class="op">$</span><span class="va">sat_pm25_centroid</span> <span class="op">&lt;-</span> <span class="va">sat_centroid_vals</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span></span>
+<span><span class="va">sat_centroid_vals</span>              <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">r_nov</span>, <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/vect.html" class="external-link">vect</a></span><span class="op">(</span><span class="va">ward_centroids</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">delhi_wards</span><span class="op">[[</span><span class="st">"sat_pm25_centroid"</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">sat_centroid_vals</span><span class="op">[[</span><span class="st">"lyr.1"</span><span class="op">]</span><span class="op">]</span></span>
 <span></span>
-<span><span class="co"># Step 3: Distance matrix — every ward centroid vs every winter station</span></span>
-<span><span class="co"># Result: matrix of [n_wards x n_stations] distances in metres</span></span>
 <span><span class="va">dist_matrix_winter</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_measures.html" class="external-link">st_distance</a></span><span class="op">(</span><span class="va">ward_centroids</span>, <span class="va">station_ground_sf</span><span class="op">)</span></span>
+<span><span class="va">nearest_idx</span>        <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">dist_matrix_winter</span>, <span class="fl">1</span>, <span class="va">which.min</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># For each ward, find which station is nearest</span></span>
-<span><span class="va">nearest_idx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">dist_matrix_winter</span>, <span class="fl">1</span>, <span class="va">which.min</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Pull that station's ground PM2.5 into the wards dataframe</span></span>
 <span><span class="va">delhi_wards</span><span class="op">$</span><span class="va">nearest_ground_pm25</span> <span class="op">&lt;-</span> <span class="va">station_ground_sf</span><span class="op">$</span><span class="va">ground_pm25</span><span class="op">[</span><span class="va">nearest_idx</span><span class="op">]</span></span>
+<span><span class="va">delhi_wards</span><span class="op">$</span><span class="va">nearest_winter_km</span>   <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">dist_matrix_winter</span>, <span class="fl">1</span>, <span class="va">min</span><span class="op">)</span> <span class="op">/</span> <span class="fl">1000</span></span>
+<span><span class="va">delhi_wards</span><span class="op">$</span><span class="va">delta</span>               <span class="op">&lt;-</span> <span class="va">delhi_wards</span><span class="op">$</span><span class="va">sat_pm25_centroid</span> <span class="op">-</span></span>
+<span>                                   <span class="va">delhi_wards</span><span class="op">$</span><span class="va">nearest_ground_pm25</span></span>
 <span></span>
-<span><span class="co"># Distance to nearest winter station in km</span></span>
-<span><span class="va">delhi_wards</span><span class="op">$</span><span class="va">nearest_winter_km</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">dist_matrix_winter</span>, <span class="fl">1</span>, <span class="va">min</span><span class="op">)</span> <span class="op">/</span> <span class="fl">1000</span></span>
-<span></span>
-<span><span class="co"># Step 4: Delta = satellite at ward centroid − nearest station ground reading</span></span>
-<span><span class="co"># All values negative is expected — ground stations read higher (point-source bias)</span></span>
-<span><span class="co"># We care about relative variation: less negative = better agreement</span></span>
-<span><span class="va">delhi_wards</span><span class="op">$</span><span class="va">delta</span> <span class="op">&lt;-</span> <span class="va">delhi_wards</span><span class="op">$</span><span class="va">sat_pm25_centroid</span> <span class="op">-</span></span>
-<span>                     <span class="va">delhi_wards</span><span class="op">$</span><span class="va">nearest_ground_pm25</span></span>
-<span></span>
-<span><span class="co"># Step 5: Priority classification</span></span>
-<span><span class="co"># High priority = far from sensor (&gt;2km for wards) AND above-median satellite PM2.5</span></span>
-<span><span class="co"># These are the wards most at risk of having pollution underestimated</span></span>
 <span><span class="va">delhi_wards</span> <span class="op">&lt;-</span> <span class="va">delhi_wards</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
 <span>    priority <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/case-and-replace-when.html" class="external-link">case_when</a></span><span class="op">(</span></span>
-<span>      <span class="va">nearest_winter_km</span> <span class="op">&gt;</span> <span class="fl">2</span> <span class="op">&amp;</span> <span class="va">sat_pm25_centroid</span> <span class="op">&gt;</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">(</span><span class="va">sat_pm25_centroid</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">~</span> <span class="st">"High priority"</span>,</span>
-<span>      <span class="va">nearest_winter_km</span> <span class="op">&gt;</span> <span class="fl">2</span>                                                                 <span class="op">~</span> <span class="st">"Medium priority"</span>,</span>
-<span>      <span class="cn">TRUE</span>                                                                                   <span class="op">~</span> <span class="st">"Well monitored"</span></span>
+<span>      <span class="va">nearest_winter_km</span> <span class="op">&gt;</span> <span class="fl">2</span> <span class="op">&amp;</span></span>
+<span>        <span class="va">sat_pm25_centroid</span> <span class="op">&gt;</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">(</span><span class="va">sat_pm25_centroid</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">~</span> <span class="st">"High priority"</span>,</span>
+<span>      <span class="va">nearest_winter_km</span> <span class="op">&gt;</span> <span class="fl">2</span>                                          <span class="op">~</span> <span class="st">"Medium priority"</span>,</span>
+<span>      <span class="cn">TRUE</span>                                                            <span class="op">~</span> <span class="st">"Well monitored"</span></span>
 <span>    <span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span></span>
@@ -770,73 +681,55 @@ level.</p>
 <span><span class="co">#&gt; Delta summary (satellite - nearest ground station):</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">delhi_wards</span><span class="op">$</span><span class="va">delta</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
-<span><span class="co">#&gt; -191.20 -150.49 -138.38 -133.20 -123.67  -57.38</span></span>
+<span><span class="co">#&gt; -162.45 -121.91 -109.28 -108.40  -98.27  -35.32</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"\nPriority breakdown:\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Priority breakdown:</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">delhi_wards</span><span class="op">$</span><span class="va">priority</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;   High priority Medium priority  Well monitored </span></span>
-<span><span class="co">#&gt;              76              84             113</span></span></code></pre></div>
+<span><span class="co">#&gt;              86              81             123</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="the-monitoring-gap-map">The Monitoring Gap Map<a class="anchor" aria-label="anchor" href="#the-monitoring-gap-map"></a>
 </h4>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="co"># Build ward centroid → nearest station connection lines</span></span>
-<span><span class="va">centroid_coords</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_coordinates.html" class="external-link">st_coordinates</a></span><span class="op">(</span><span class="va">ward_centroids</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">centroid_coords</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_coordinates.html" class="external-link">st_coordinates</a></span><span class="op">(</span><span class="va">ward_centroids</span><span class="op">)</span></span>
 <span><span class="va">station_coords</span>  <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_coordinates.html" class="external-link">st_coordinates</a></span><span class="op">(</span><span class="va">station_ground_sf</span><span class="op">)</span><span class="op">[</span><span class="va">nearest_idx</span>, <span class="op">]</span></span>
 <span></span>
 <span><span class="va">connection_lines</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>  x_from <span class="op">=</span> <span class="va">centroid_coords</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>,  <span class="co"># ward centroid longitude</span></span>
-<span>  y_from <span class="op">=</span> <span class="va">centroid_coords</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span>,  <span class="co"># ward centroid latitude</span></span>
-<span>  x_to   <span class="op">=</span> <span class="va">station_coords</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>,   <span class="co"># nearest station longitude</span></span>
-<span>  y_to   <span class="op">=</span> <span class="va">station_coords</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span>,   <span class="co"># nearest station latitude</span></span>
+<span>  x_from <span class="op">=</span> <span class="va">centroid_coords</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>,</span>
+<span>  y_from <span class="op">=</span> <span class="va">centroid_coords</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span>,</span>
+<span>  x_to   <span class="op">=</span> <span class="va">station_coords</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>,</span>
+<span>  y_to   <span class="op">=</span> <span class="va">station_coords</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span>,</span>
 <span>  delta  <span class="op">=</span> <span class="va">delhi_wards</span><span class="op">$</span><span class="va">delta</span></span>
 <span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">delta</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="co"># Wards coloured by delta</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html" class="external-link">geom_sf</a></span><span class="op">(</span></span>
-<span>    data      <span class="op">=</span> <span class="va">delhi_wards</span>,</span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>fill  <span class="op">=</span> <span class="va">delta</span><span class="op">)</span>,</span>
-<span>    color     <span class="op">=</span> <span class="st">"white"</span>,</span>
-<span>    linewidth <span class="op">=</span> <span class="fl">0.1</span></span>
+<span>    data <span class="op">=</span> <span class="va">delhi_wards</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="va">delta</span><span class="op">)</span>,</span>
+<span>    color <span class="op">=</span> <span class="st">"white"</span>, linewidth <span class="op">=</span> <span class="fl">0.1</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="co"># Dashed lines: ward centroid → nearest station</span></span>
-<span>  <span class="co"># Longer line = ward is further from its sensor = less reliable comparison</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_segment.html" class="external-link">geom_segment</a></span><span class="op">(</span></span>
 <span>    data <span class="op">=</span> <span class="va">connection_lines</span>,</span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x_from</span>, y <span class="op">=</span> <span class="va">y_from</span>, xend <span class="op">=</span> <span class="va">x_to</span>, yend <span class="op">=</span> <span class="va">y_to</span><span class="op">)</span>,</span>
-<span>    color     <span class="op">=</span> <span class="st">"grey8"</span>,</span>
-<span>    linewidth <span class="op">=</span> <span class="fl">0.4</span>,</span>
-<span>    alpha     <span class="op">=</span> <span class="fl">0.6</span>,</span>
-<span>    linetype  <span class="op">=</span> <span class="st">"dashed"</span></span>
+<span>    color <span class="op">=</span> <span class="st">"grey8"</span>, linewidth <span class="op">=</span> <span class="fl">0.4</span>, alpha <span class="op">=</span> <span class="fl">0.6</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="co">## Outer city boundary for orientation</span></span>
-<span>  <span class="co">#geom_sf(</span></span>
-<span>  <span class="co">#  data      = delhi_city_boundary,</span></span>
-<span>  <span class="co">#  fill      = NA,</span></span>
-<span>  <span class="co">#  color     = "black",</span></span>
-<span>  <span class="co">#  linewidth = 0.7</span></span>
-<span>  <span class="co">#) +</span></span>
-<span>  <span class="co"># CPCB station locations</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html" class="external-link">geom_sf</a></span><span class="op">(</span></span>
 <span>    data  <span class="op">=</span> <span class="va">station_ground_sf</span>,</span>
 <span>    color <span class="op">=</span> <span class="st">"black"</span>, fill <span class="op">=</span> <span class="st">"yellow"</span>,</span>
-<span>    size  <span class="op">=</span> <span class="fl">2.5</span>, shape <span class="op">=</span> <span class="fl">21</span>, alpha<span class="op">=</span><span class="fl">0.7</span></span>
+<span>    size  <span class="op">=</span> <span class="fl">2.5</span>, shape <span class="op">=</span> <span class="fl">21</span>, alpha <span class="op">=</span> <span class="fl">0.7</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_gradient.html" class="external-link">scale_fill_gradientn</a></span><span class="op">(</span></span>
-<span>  colours  <span class="op">=</span> <span class="fu">khroma</span><span class="fu">::</span><span class="fu"><a href="https://packages.tesselle.org/khroma/reference/colour.html" class="external-link">colour</a></span><span class="op">(</span><span class="st">"roma"</span><span class="op">)</span><span class="op">(</span><span class="fl">100</span><span class="op">)</span>,</span>
-<span>  values   <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/rescale.html" class="external-link">rescale</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">delhi_wards</span><span class="op">$</span><span class="va">delta</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">(</span><span class="va">delhi_wards</span><span class="op">$</span><span class="va">delta</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">delhi_wards</span><span class="op">$</span><span class="va">delta</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span>  <span class="op">)</span><span class="op">)</span>,</span>
-<span>  na.value <span class="op">=</span> <span class="st">"grey80"</span>,</span>
-<span>  name     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">Delta</span> <span class="op">~</span> <span class="va">PM</span><span class="op">[</span><span class="fl">2.5</span><span class="op">]</span> <span class="op">~</span> <span class="op">(</span><span class="va">mu</span> <span class="op">*</span> <span class="va">g</span><span class="op">/</span><span class="va">m</span><span class="op">^</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="op">)</span> <span class="op">+</span></span>
+<span>    colours  <span class="op">=</span> <span class="fu">khroma</span><span class="fu">::</span><span class="fu"><a href="https://packages.tesselle.org/khroma/reference/colour.html" class="external-link">colour</a></span><span class="op">(</span><span class="st">"roma"</span><span class="op">)</span><span class="op">(</span><span class="fl">100</span><span class="op">)</span>,</span>
+<span>    values   <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/rescale.html" class="external-link">rescale</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>      <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">delhi_wards</span><span class="op">$</span><span class="va">delta</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>      <span class="fu"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">(</span><span class="va">delhi_wards</span><span class="op">$</span><span class="va">delta</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>      <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">delhi_wards</span><span class="op">$</span><span class="va">delta</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span>    <span class="op">)</span><span class="op">)</span>,</span>
+<span>    na.value <span class="op">=</span> <span class="st">"grey80"</span>,</span>
+<span>    name     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">Delta</span> <span class="op">~</span> <span class="va">PM</span><span class="op">[</span><span class="fl">2.5</span><span class="op">]</span> <span class="op">~</span> <span class="op">(</span><span class="va">mu</span> <span class="op">*</span> <span class="va">g</span><span class="op">/</span><span class="va">m</span><span class="op">^</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
 <span>    title    <span class="op">=</span> <span class="st">"Delhi: Satellite vs Nearest Ground Station PM2.5 by Ward"</span>,</span>
 <span>    subtitle <span class="op">=</span> <span class="st">"Dashed lines connect each ward centroid to its nearest CPCB station\nColour shows relative difference | Yellow = CPCB stations"</span>,</span>
@@ -844,44 +737,39 @@ level.</p>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">xlab</a></span><span class="op">(</span><span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ylab</a></span><span class="op">(</span><span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html" class="external-link">coord_sf</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">11</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span></span>
-<span>    text <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>family <span class="op">=</span> <span class="st">"Arial"</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">11</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span></span>
+<span>    text             <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>family <span class="op">=</span> <span class="st">"Arial"</span><span class="op">)</span>,</span>
 <span>    panel.grid.major <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>    panel.grid.minor <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>    legend.position <span class="op">=</span> <span class="st">"top"</span>,</span>
-<span>     plot.title      <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>face <span class="op">=</span> <span class="st">"bold"</span><span class="op">)</span>,</span>
-<span>    plot.subtitle   <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">9.5</span>, color <span class="op">=</span> <span class="st">"grey8"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guides.html" class="external-link">guides</a></span><span class="op">(</span></span>
-<span>    fill <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_colourbar.html" class="external-link">guide_colorbar</a></span><span class="op">(</span></span>
-<span>      barwidth <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">10</span>, <span class="st">"lines"</span><span class="op">)</span>,</span>
-<span>      barheight <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">0.6</span>, <span class="st">"lines"</span><span class="op">)</span></span>
-<span>    <span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="co">#+</span></span></code></pre></div>
+<span>    legend.position  <span class="op">=</span> <span class="st">"top"</span>,</span>
+<span>    plot.title       <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>face <span class="op">=</span> <span class="st">"bold"</span><span class="op">)</span>,</span>
+<span>    plot.subtitle    <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">9.5</span>, color <span class="op">=</span> <span class="st">"grey40"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guides.html" class="external-link">guides</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_colourbar.html" class="external-link">guide_colorbar</a></span><span class="op">(</span></span>
+<span>    barwidth  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">10</span>, <span class="st">"lines"</span><span class="op">)</span>,</span>
+<span>    barheight <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">0.6</span>, <span class="st">"lines"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
-<img src="delhi_pm2.5_analysis_files/figure-html/gap-map-1.png" class="r-plt" alt="Monitoring gap map. Each ward is coloured by ground-satellite disagreement. Dashed lines connect each ward centroid to its nearest CPCB station — longer lines mean the station is further away and less representative of that ward. Black outline = Delhi NCT boundary." width="100%"><p class="caption">
+<img src="delhi_pm2.5_analysis_files/figure-html/gap-map-1.png" class="r-plt" alt="Monitoring gap map. Each ward is coloured by ground-satellite disagreement. Dashed lines connect each ward centroid to its nearest CPCB station. Yellow dots = CPCB stations." width="100%"><p class="caption">
 Monitoring gap map. Each ward is coloured by ground-satellite
 disagreement. Dashed lines connect each ward centroid to its nearest
-CPCB station — longer lines mean the station is further away and less
-representative of that ward. Black outline = Delhi NCT boundary.
+CPCB station. Yellow dots = CPCB stations.
 </p>
 </div>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span>    <span class="co">#ggview::canvas(width=9.5, height = 7.5, dpi=300)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggsave</a></span><span class="op">(</span><span class="st">"fig4_monitoring_gap_map.png"</span>, width <span class="op">=</span> <span class="fl">9</span>, height <span class="op">=</span> <span class="fl">7.5</span>, dpi <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggsave</a></span><span class="op">(</span><span class="fu">fig_path</span><span class="op">(</span><span class="st">"fig4_monitoring_gap_map.png"</span><span class="op">)</span>, width <span class="op">=</span> <span class="fl">9</span>, height <span class="op">=</span> <span class="fl">7.5</span>, dpi <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="priority-map-where-should-new-stations-go">Priority Map: Where Should New Stations Go?<a class="anchor" aria-label="anchor" href="#priority-map-where-should-new-stations-go"></a>
 </h4>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="co"># Wards coloured by priority</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html" class="external-link">geom_sf</a></span><span class="op">(</span></span>
 <span>    data <span class="op">=</span> <span class="va">delhi_wards</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="va">priority</span><span class="op">)</span>,</span>
 <span>    color <span class="op">=</span> <span class="st">"white"</span>, linewidth <span class="op">=</span> <span class="fl">0.15</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="co"># CPCB station locations</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html" class="external-link">geom_sf</a></span><span class="op">(</span></span>
 <span>    data  <span class="op">=</span> <span class="va">delhi_full_sf</span>,</span>
 <span>    color <span class="op">=</span> <span class="st">"black"</span>, fill <span class="op">=</span> <span class="st">"yellow"</span>,</span>
@@ -898,52 +786,47 @@ representative of that ward. Black outline = Delhi NCT boundary.
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
 <span>    title    <span class="op">=</span> <span class="st">"Delhi: Priority Wards for New CPCB Monitoring Stations"</span>,</span>
-<span>    subtitle <span class="op">=</span> <span class="st">"Red = above-median PM2.5 AND &gt;2km from nearest sensor\nOrange = &gt;2km from sensor | Green = well covered | Yellow = existing stations"</span>,</span>
+<span>    subtitle <span class="op">=</span> <span class="st">"Red = above-median PM2.5 AND &gt;2 km from nearest sensor\nOrange = &gt;2 km from sensor | Green = well covered | Yellow = existing stations"</span>,</span>
 <span>    caption  <span class="op">=</span> <span class="st">"Source: WUSTL ACAG V5GL04 + CPCB CAAQMS | November 2022"</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">xlab</a></span><span class="op">(</span><span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ylab</a></span><span class="op">(</span><span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">13</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span></span>
-<span>    plot.title      <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>face <span class="op">=</span> <span class="st">"bold"</span><span class="op">)</span>,</span>
-<span>    plot.subtitle   <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">9.5</span>, color <span class="op">=</span> <span class="st">"grey40"</span><span class="op">)</span></span>
+<span>    text          <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>family <span class="op">=</span> <span class="st">"Arial"</span><span class="op">)</span>,</span>
+<span>    plot.title    <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>face <span class="op">=</span> <span class="st">"bold"</span><span class="op">)</span>,</span>
+<span>    plot.subtitle <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">9.5</span>, color <span class="op">=</span> <span class="st">"grey40"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 <div class="figure">
-<img src="delhi_pm2.5_analysis_files/figure-html/priority-map-1.png" class="r-plt" alt="Priority wards for new CPCB stations. Red = high pollution AND poor sensor coverage (&gt;2km from nearest station). These are the wards where a new station would most improve monitoring quality." width="100%"><p class="caption">
+<img src="delhi_pm2.5_analysis_files/figure-html/priority-map-1.png" class="r-plt" alt="Priority wards for new CPCB stations. Red = high pollution AND poor sensor coverage (&gt;2 km from nearest station). Orange = poor coverage only. Green = well monitored." width="100%"><p class="caption">
 Priority wards for new CPCB stations. Red = high pollution AND poor
-sensor coverage (&gt;2km from nearest station). These are the wards
-where a new station would most improve monitoring quality.
+sensor coverage (&gt;2 km from nearest station). Orange = poor coverage
+only. Green = well monitored.
 </p>
 </div>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggsave</a></span><span class="op">(</span><span class="st">"fig5_priority_map.png"</span>, width <span class="op">=</span> <span class="fl">9</span>, height <span class="op">=</span> <span class="fl">7</span>, dpi <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggsave</a></span><span class="op">(</span><span class="fu">fig_path</span><span class="op">(</span><span class="st">"fig5_priority_map.png"</span><span class="op">)</span>, width <span class="op">=</span> <span class="fl">9</span>, height <span class="op">=</span> <span class="fl">7</span>, dpi <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="does-sensor-distance-predict-disagreement">Does Sensor Distance Predict Disagreement?<a class="anchor" aria-label="anchor" href="#does-sensor-distance-predict-disagreement"></a>
 </h4>
-<p>If the monitoring gap hypothesis holds, wards further from their
-nearest sensor should show greater ground-satellite disagreement. This
-scatter plot tests that relationship directly using a LOESS fit to
-capture any non-linear pattern.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cor_val</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span></span>
 <span>  <span class="va">delhi_wards</span><span class="op">$</span><span class="va">nearest_winter_km</span>,</span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">delhi_wards</span><span class="op">$</span><span class="va">delta</span><span class="op">)</span>,</span>
 <span>  use <span class="op">=</span> <span class="st">"complete.obs"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Correlation (distance vs |delta|): r ="</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">cor_val</span>, <span class="fl">3</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Correlation (distance vs |delta|): r = 0.137</span></span>
+<span><span class="co">#&gt; Correlation (distance vs |delta|): r = 0.155</span></span>
 <span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_geometry.html" class="external-link">st_drop_geometry</a></span><span class="op">(</span><span class="va">delhi_wards</span><span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">nearest_winter_km</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">delta</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_rug.html" class="external-link">geom_rug</a></span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">0.3</span>, color <span class="op">=</span> <span class="st">"grey40"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>color <span class="op">=</span> <span class="va">nearest_winter_km</span><span class="op">)</span>, size <span class="op">=</span> <span class="fl">3</span>, alpha <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_smooth.html" class="external-link">geom_smooth</a></span><span class="op">(</span></span>
-<span>    method <span class="op">=</span> <span class="st">"loess"</span>, se <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>    color <span class="op">=</span> <span class="st">"firebrick"</span>, fill <span class="op">=</span> <span class="st">"pink"</span>, alpha <span class="op">=</span> <span class="fl">0.2</span></span>
-<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>color <span class="op">=</span> <span class="va">nearest_winter_km</span><span class="op">)</span>, size <span class="op">=</span> <span class="fl">2</span>, alpha <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_smooth.html" class="external-link">geom_smooth</a></span><span class="op">(</span>method <span class="op">=</span> <span class="st">"loess"</span>, se <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>              color <span class="op">=</span> <span class="st">"firebrick"</span>, fill <span class="op">=</span> <span class="st">"pink"</span>, alpha <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/annotate.html" class="external-link">annotate</a></span><span class="op">(</span></span>
 <span>    <span class="st">"text"</span>,</span>
 <span>    x     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">delhi_wards</span><span class="op">$</span><span class="va">nearest_winter_km</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">*</span> <span class="fl">0.55</span>,</span>
@@ -958,18 +841,18 @@ capture any non-linear pattern.</p>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
 <span>    title    <span class="op">=</span> <span class="st">"Sensor Distance Predicts Ground-Satellite Disagreement"</span>,</span>
-<span>    subtitle <span class="op">=</span> <span class="st">"Each point = one Delhi ward (n = 273) | LOESS fit with 95% CI"</span>,</span>
+<span>    subtitle <span class="op">=</span> <span class="st">"Each point = one Delhi ward (n = 290) | LOESS fit with 95% CI"</span>,</span>
 <span>    x        <span class="op">=</span> <span class="st">"Distance to nearest CPCB station (km)"</span>,</span>
 <span>    y        <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"|Delta| PM"</span><span class="op">[</span><span class="fl">2.5</span><span class="op">]</span> <span class="op">~</span> <span class="op">(</span><span class="va">mu</span> <span class="op">*</span> <span class="va">g</span><span class="op">/</span><span class="va">m</span><span class="op">^</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>    caption  <span class="op">=</span> <span class="st">"November 2022 | Source: WUSTL ACAG V5GL04 + CPCB CAAQMS"</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">11</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span></span>
-<span>    text               <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>family <span class="op">=</span> <span class="st">"Arial"</span><span class="op">)</span>,</span>
-<span>    legend.position    <span class="op">=</span> <span class="st">"top"</span>,</span>
-<span>    panel.grid.minor   <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>    plot.title         <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>face <span class="op">=</span> <span class="st">"bold"</span><span class="op">)</span>,</span>
-<span>    plot.subtitle      <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">9.5</span>, color <span class="op">=</span> <span class="st">"grey40"</span><span class="op">)</span></span>
+<span>    text             <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>family <span class="op">=</span> <span class="st">"Arial"</span><span class="op">)</span>,</span>
+<span>    legend.position  <span class="op">=</span> <span class="st">"top"</span>,</span>
+<span>    panel.grid.minor <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    plot.title       <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>face <span class="op">=</span> <span class="st">"bold"</span><span class="op">)</span>,</span>
+<span>    plot.subtitle    <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">9.5</span>, color <span class="op">=</span> <span class="st">"grey40"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guides.html" class="external-link">guides</a></span><span class="op">(</span>color <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_colourbar.html" class="external-link">guide_colorbar</a></span><span class="op">(</span></span>
 <span>    barwidth       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">12</span>, <span class="st">"lines"</span><span class="op">)</span>,</span>
@@ -977,15 +860,15 @@ capture any non-linear pattern.</p>
 <span>    title.position <span class="op">=</span> <span class="st">"top"</span></span>
 <span>  <span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
-<img src="delhi_pm2.5_analysis_files/figure-html/scatter-1.png" class="r-plt" alt="Relationship between sensor distance and ground-satellite disagreement across 273 Delhi wards. LOESS fit captures non-linear trend. Rug marks show distribution of values along each axis." width="100%"><p class="caption">
+<img src="delhi_pm2.5_analysis_files/figure-html/scatter-1.png" class="r-plt" alt="Relationship between sensor distance and ground-satellite disagreement across 290 Delhi wards. LOESS fit with 95% CI captures any non-linear trend." width="100%"><p class="caption">
 Relationship between sensor distance and ground-satellite disagreement
-across 273 Delhi wards. LOESS fit captures non-linear trend. Rug marks
-show distribution of values along each axis.
+across 290 Delhi wards. LOESS fit with 95% CI captures any non-linear
+trend.
 </p>
 </div>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggsave</a></span><span class="op">(</span><span class="st">"fig6_distance_vs_disagreement.png"</span>, width <span class="op">=</span> <span class="fl">9</span>, height <span class="op">=</span> <span class="fl">5</span>, dpi <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggsave</a></span><span class="op">(</span><span class="fu">fig_path</span><span class="op">(</span><span class="st">"fig6_distance_vs_disagreement.png"</span><span class="op">)</span>, width <span class="op">=</span> <span class="fl">9</span>, height <span class="op">=</span> <span class="fl">5</span>, dpi <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></span></code></pre></div>
 <hr>
 </div>
 </div>
@@ -1006,53 +889,55 @@ limits.</p>
 <p>Ground readings run consistently higher than satellite estimates.
 This is expected — CPCB stations are often sited near pollution sources
 to capture worst-case exposure, whereas satellite represents a spatial
-mean over entire 1km pixels.</p>
+mean over entire 1 km pixels.</p>
 </div>
 <div class="section level3">
 <h3 id="spatial-heterogeneity">Spatial Heterogeneity<a class="anchor" aria-label="anchor" href="#spatial-heterogeneity"></a>
 </h3>
-<p>The November heatmap reveals that pollution is far from uniform
-across Delhi’s 273 MCD wards. Peripheral wards show elevated PM2.5 that
-is completely invisible from city-level aggregate statistics — yet these
-areas have direct implications for where residents face the highest
-health burden.</p>
+<p>The November heatmap and ward choropleth reveal that pollution is far
+from uniform across Delhi’s 290 wards. Peripheral wards show elevated
+PM2.5 that is completely invisible from city-level aggregate
+statistics.</p>
 </div>
 <div class="section level3">
 <h3 id="monitoring-gap">Monitoring Gap<a class="anchor" aria-label="anchor" href="#monitoring-gap"></a>
 </h3>
-<p>The gap analysis answers the central policy question. The delta map
-and scatter plot together show that wards furthest from their nearest
-CPCB station tend to show the largest disagreement between satellite
-estimates and ground readings. This supports the conclusion that the
-current monitoring network provides an incomplete picture of pollution
-in peripheral Delhi.</p>
-<p>The priority map identifies specific wards where a new station would
-have the greatest impact: those with both above-median satellite PM2.5
-and poor sensor coverage (&gt;2km from nearest station). These are the
-wards where investment in new CAAQMS stations should be prioritised.</p>
-</div>
-<div class="section level3">
-<h3 id="limitations">Limitations<a class="anchor" aria-label="anchor" href="#limitations"></a>
-</h3>
-<ul>
-<li>All delta values are negative — ground stations consistently read
-higher than satellite due to point-source siting bias. The analysis
-focuses on <em>relative</em> disagreement across wards rather than
-absolute values</li>
-<li>Station coordinates from cpcb_add_coords() are sourced directly from
-the CPCB live feed, with Nominatim as fallback for stations temporarily
-offline</li>
-<li>V5GL04 (2022) is used in place of V6GL02 (2023) due to server data
-availability — the methodology is identical for any year once V6GL02 is
-downloaded</li>
-</ul>
+<p>The gap analysis answers the central policy question. Across 290
+wards, those furthest from their nearest CPCB station tend to show the
+largest disagreement between satellite estimates and ground readings.
+The LOESS fit — statistically meaningful with 290 data points — reveals
+the non-linear structure of this relationship. The priority map
+identifies specific wards where a new station would have the greatest
+impact: those with both above-median satellite PM2.5 and poor sensor
+coverage (&gt;2 km from nearest station).</p>
 <hr>
 </div>
 </div>
 <div class="section level2">
+<h2 id="limitations">Limitations<a class="anchor" aria-label="anchor" href="#limitations"></a>
+</h2>
+<ul>
+<li><p><strong>Negative delta values</strong>: Ground stations
+consistently read higher than satellite estimates due to point-source
+siting bias. The analysis focuses on <em>relative</em> disagreement
+across wards rather than absolute values.</p></li>
+<li><p><strong>Station coordinates</strong>: Sourced directly from the
+CPCB live feed via <code><a href="../reference/cpcb_add_coords.html">cpcb_add_coords()</a></code>, with Nominatim
+geocoding as fallback. All 46 Delhi stations have valid
+coordinates.</p></li>
+<li><p><strong>Satellite data version</strong>: V5GL04 covers 1998–2022.
+The methodology is identical for any year once the newer V6GL02 version
+is available.</p></li>
+<li><p><strong>Ward boundary</strong>: The BharatViz ward dataset (290
+wards) provides full Delhi coverage including NDMC and cantonment areas,
+sourced from <code>bharatviz.saketlab.org</code>.</p></li>
+</ul>
+<hr>
+</div>
+<div class="section level2">
 <h2 id="session-information">Session Information<a class="anchor" aria-label="anchor" href="#session-information"></a>
 </h2>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; R version 4.5.2 (2025-10-31)</span></span>
 <span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu</span></span>

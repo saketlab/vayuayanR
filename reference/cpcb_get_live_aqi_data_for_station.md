@@ -1,4 +1,4 @@
-# Get Live AQI Data for a Station
+# Get live AQI data for a station
 
 Get live AQI data for a specific station at a specific time.
 

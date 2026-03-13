@@ -1,4 +1,4 @@
-# Download Station-Level AQI Data
+# Download station-level AQI data
 
 Download past year AQI data for a station from CPCB.
 

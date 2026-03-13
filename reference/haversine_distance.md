@@ -1,4 +1,4 @@
-# Calculate Haversine Distance
+# Calculate haversine distance
 
 Calculate great circle distance between two points
 

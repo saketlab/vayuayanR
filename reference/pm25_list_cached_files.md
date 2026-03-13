@@ -1,4 +1,4 @@
-# List Cached PM2.5 NetCDF Files
+# List cached PM2.5 NetCDF files
 
 List all cached NetCDF files in the cache directory.
 

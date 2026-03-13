@@ -1,4 +1,4 @@
-# Analyze Station Data
+# Analyze station data
 
 Comprehensive analysis of station data
 

@@ -1,4 +1,4 @@
-# Clear PM2.5 Cache
+# Clear PM2.5 cache
 
 Clear all cached NetCDF files.
 

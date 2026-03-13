@@ -1,4 +1,4 @@
-# Get AQI Category
+# Get AQI category
 
 Convert AQI numeric value to category
 

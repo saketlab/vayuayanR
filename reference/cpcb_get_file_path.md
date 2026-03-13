@@ -1,4 +1,4 @@
-# Get File Path for CPCB Data Download
+# Get file path for CPCB data download
 
 Get file path for downloading data from CPCB.
 

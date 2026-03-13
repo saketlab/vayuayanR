@@ -1,4 +1,4 @@
-# Vectorized AQI Category
+# Vectorized AQI category
 
 Convert vector of AQI values to categories
 

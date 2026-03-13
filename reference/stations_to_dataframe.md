@@ -1,4 +1,4 @@
-# Convert Station Data to DataFrame
+# Convert station data to data frame
 
 Convert nested station data to a flat data frame with geographic
 information, AQI values, and categories. This is the primary way to get

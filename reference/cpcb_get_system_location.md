@@ -1,6 +1,7 @@
-# Get System Location via IP Geolocation
+# Get system location via IP geolocation
 
-Get system location using IP-based lookup.
+Get approximate system location using IP-based geolocation. Returns
+city-level coordinates based on the machine's public IP address.
 
 ## Usage
 

@@ -1,9 +1,13 @@
-# Add Coordinates to Station List
+# Add coordinates to station list
 
-Add lat/lon coordinates to a station list via OpenStreetMap geocoding.
-Handles co-located stations (same name, different agencies) by using
-differentiated coordinates, and expands known abbreviations for better
-geocoding accuracy.
+Add lat/lon coordinates to a station data frame by querying the CPCB
+live coordinates API (`iit_rss_feed_with_coordinates`). This is the same
+source used by the Python vayuayan package and returns authoritative
+coordinates directly from CPCB - no geocoding, no rate limiting, no NAs
+for oddly-named stations.
+
+Falls back to Nominatim geocoding for any stations not found in the CPCB
+response (e.g. offline stations absent from the live feed).
 
 ## Usage
 
@@ -15,8 +19,9 @@ cpcb_add_coords(stations)
 
 - stations:
 
-  Data frame from cpcb_get_station_list()
+  Data frame from
+  [`cpcb_get_station_list()`](https://saketkc.github.io/vayuayanR/reference/cpcb_get_station_list.md)
 
 ## Value
 
-Same data frame with lat and lon columns added
+Same data frame with `lat` and `lon` columns added

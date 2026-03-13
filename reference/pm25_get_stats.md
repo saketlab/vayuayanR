@@ -1,4 +1,4 @@
-# Get PM2.5 Statistics for a Region
+# Get PM2.5 statistics for a region
 
 Compute PM2.5 statistics for a region defined by a GeoJSON file.
 
