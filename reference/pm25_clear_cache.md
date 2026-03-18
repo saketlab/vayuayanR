@@ -1,6 +1,7 @@
 # Clear PM2.5 cache
 
-Clear all cached NetCDF files.
+Delete all cached NetCDF files from the cache directory to free disk
+space.
 
 ## Usage
 
@@ -12,4 +13,16 @@ pm25_clear_cache(cache_dir = "pm25_data")
 
 - cache_dir:
 
-  Directory containing cached files (default: "pm25_data")
+  Character. Directory containing cached files. Default: `"pm25_data"`.
+
+## Value
+
+Invisibly returns NULL.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+pm25_clear_cache()
+} # }
+```

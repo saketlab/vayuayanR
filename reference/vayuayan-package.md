@@ -23,3 +23,7 @@ Useful links:
 Authors:
 
 - Mahesh Kumar Prajapat <22b0433@iitb.ac.in>
+
+Other contributors:
+
+- Darakhshan Nehal \[contributor\]

@@ -1,6 +1,8 @@
 # Download station-level AQI data
 
-Download past year AQI data for a station from CPCB.
+Download daily PM2.5 AQI data for a single CPCB monitoring station for a
+given year. Data is saved as a CSV file with one row per day and one
+column per month.
 
 ## Usage
 
@@ -12,16 +14,31 @@ cpcb_download_station_data(station_id, year, save_location)
 
 - station_id:
 
-  Station ID
+  Character. Station ID from
+  [`cpcb_get_station_list()`](https://saketkc.github.io/vayuayanR/reference/cpcb_get_station_list.md)
+  (e.g. `"site_103"`).
 
 - year:
 
-  Year for data
+  Integer. Year for data (e.g. `2022`).
 
 - save_location:
 
-  Path to save downloaded data
+  Character. Full file path to save the downloaded CSV.
 
 ## Value
 
-Data frame preview of downloaded data
+Data frame preview (first 6 rows) of the downloaded data, invisibly. The
+full data is saved to `save_location`.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+cpcb_download_station_data(
+  station_id    = "site_103",
+  year          = 2022,
+  save_location = tempfile(fileext = ".csv")
+)
+} # }
+```

@@ -1,6 +1,9 @@
 # Get file path for CPCB data download
 
-Get file path for downloading data from CPCB.
+Get file path for downloading data from CPCB. Used internally by
+[`cpcb_download_city_data()`](https://saketkc.github.io/vayuayanR/reference/cpcb_download_city_data.md)
+and
+[`cpcb_download_station_data()`](https://saketkc.github.io/vayuayanR/reference/cpcb_download_station_data.md).
 
 ## Usage
 
@@ -20,32 +23,42 @@ cpcb_get_file_path(
 
 - station_id:
 
-  Station ID
+  Character. Station ID (e.g. `"site_103"`).
 
 - station_name:
 
-  Station name
+  Character. Station name.
 
 - state:
 
-  State name
+  Character. State name.
 
 - city:
 
-  City name
+  Character. City name.
 
 - year:
 
-  Year for data
+  Integer or character. Year for data (e.g. `2022`).
 
 - frequency:
 
-  Data frequency ('hourly' or 'daily')
+  Character. Data frequency: `"daily"` or `"hourly"`.
 
 - data_type:
 
-  Type of data ('cityLevel' or 'stationLevel')
+  Character. Type of data: `"cityLevel"` or `"stationLevel"`.
 
 ## Value
 
-List of file path information
+List of file path information with `filePath` and `year` elements
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+paths <- cpcb_get_file_path(city = "Delhi", frequency = "daily",
+                             data_type = "cityLevel")
+str(paths[[1]])
+} # }
+```

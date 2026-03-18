@@ -12,3 +12,13 @@ cpcb_get_all_india()
 ## Value
 
 List of station data
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+stations <- cpcb_get_all_india()
+df <- stations_to_dataframe(stations)
+head(df)
+} # }
+```

@@ -11,3 +11,12 @@ cpcb_get_complete_list()
 ## Value
 
 List containing station and city data
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+all_data <- cpcb_get_complete_list()
+names(all_data)
+} # }
+```

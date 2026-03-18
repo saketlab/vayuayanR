@@ -363,7 +363,7 @@ ggplot(ground_monthly_sd,
   facet_wrap(~ city, ncol = 2, scales = "free_y") +
   labs(
     title    = "Day-to-Day Variability in Monthly PM2.5 — Five Metros (2022)",
-    subtitle = "Line = monthly mean | Ribbon = ±1 SD across daily readings | Free Y-axis per city",
+    subtitle = "Line = monthly mean | Ribbon = ±1 SD across daily readings",
     y        = expression(paste("PM2.5 (", mu, "g/m"^3, ")")),
     x        = NULL,
     caption  = "Source: CPCB CAAQMS | 2022"

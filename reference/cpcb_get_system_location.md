@@ -12,3 +12,12 @@ cpcb_get_system_location()
 ## Value
 
 Numeric vector c(lat, lon)
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+loc <- cpcb_get_system_location()
+cat("Latitude:", loc["lat"], "Longitude:", loc["lon"])
+} # }
+```

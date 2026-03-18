@@ -12,8 +12,17 @@ cpcb_get_station_list(city)
 
 - city:
 
-  City name
+  Character. City name (e.g. `"Delhi"`, `"Mumbai"`).
 
 ## Value
 
-Data frame of station information
+Data frame with columns `value` (station ID) and `label` (station name)
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+stations <- cpcb_get_station_list("Delhi")
+head(stations)
+} # }
+```
