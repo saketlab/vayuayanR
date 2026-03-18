@@ -57,9 +57,27 @@
   },
   "url": "https://saketkc.github.io/vayuayanR/",
   "downloadUrl": "https://github.com/saketkc/vayuayanR",
-  "softwareVersion": "0.1.3",
+  "softwareVersion": "0.2.0",
   "programmingLanguage": "R"
 }
+</script><script>
+document.addEventListener('DOMContentLoaded', function() {
+  var codeBlocks = document.querySelectorAll('div.sourceCode');
+  codeBlocks.forEach(function(block) {
+    var btn = document.createElement('button');
+    btn.innerText = 'Show code';
+    btn.className = 'btn btn-sm btn-outline-secondary mb-1';
+    btn.style.fontSize = '0.75rem';
+    var visible = false;
+    block.style.display = 'none';
+    btn.onclick = function() {
+      visible = !visible;
+      block.style.display = visible ? 'block' : 'none';
+      btn.innerText = visible ? 'Hide code' : 'Show code';
+    };
+    block.parentNode.insertBefore(btn, block);
+  });
+});
 </script>
 </head>
 <body>
@@ -146,7 +164,7 @@
 <span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Install vayuayan</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"saketkc/vayuayanR"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/install-deprecated.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"saketkc/vayuayanR"</span><span class="op">)</span></span></code></pre></div>
 <hr>
 </div>
 <div class="section level2">
@@ -286,36 +304,36 @@
 <col width="43%">
 <col width="56%">
 </colgroup>
-<thead><tr class="header">
+<thead><tr>
 <th>Function</th>
 <th>Description</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><code><a href="reference/cpcb_get_state_list.html">cpcb_get_state_list()</a></code></td>
 <td>Get all available states</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>cpcb_get_city_list(state)</code></td>
 <td>Get cities in a state</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>cpcb_get_station_list(city)</code></td>
 <td>Get stations in a city as a data frame</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code><a href="reference/cpcb_get_complete_list.html">cpcb_get_complete_list()</a></code></td>
 <td>Get all states, cities, and stations</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>cpcb_add_coords(station_df)</code></td>
 <td>Add coordinates from CPCB live feed (Nominatim fallback for offline stations)</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>cpcb_download_city_data(city, year, save_location)</code></td>
 <td>Download city-level daily PM2.5</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>cpcb_download_station_data(station_id, year, save_location)</code></td>
 <td>Download per-station daily PM2.5</td>
 </tr>
@@ -330,16 +348,16 @@
 <col width="43%">
 <col width="56%">
 </colgroup>
-<thead><tr class="header">
+<thead><tr>
 <th>Function</th>
 <th>Description</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><code>pm25_get_stats(geojson_file, year, month, cache_dir, group_by)</code></td>
 <td>Extract mean PM2.5 stats for a region</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>pm25_download_netcdf(year, month, cache_dir)</code></td>
 <td>Download WUSTL ACAG NetCDF file</td>
 </tr>
@@ -354,28 +372,28 @@
 <col width="43%">
 <col width="56%">
 </colgroup>
-<thead><tr class="header">
+<thead><tr>
 <th>Function</th>
 <th>Description</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><code>get_aqi_category(value)</code></td>
 <td>Get AQI category label for a single value</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>get_aqi_categories(values)</code></td>
 <td>Vectorised AQI category labels</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>clean_station_name(name)</code></td>
 <td>Sanitise station name for use as filename</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>haversine_distance(lat1, lon1, lat2, lon2)</code></td>
 <td>Distance between two coordinates (km)</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>stations_to_dataframe(data)</code></td>
 <td>Convert raw station list to tidy data frame</td>
 </tr>
@@ -436,6 +454,7 @@ for India. R package version 0.2.0. https://github.com/saketkc/vayuayanR</code><
 <li>
 <a href="https://github.com/saketkc" class="external-link">Saket Choudhary</a> <br><small class="roles"> Author, maintainer </small>   </li>
 <li>Mahesh Kumar Prajapat <br><small class="roles"> Author </small>   </li>
+<li><a href="authors.html">More about authors...</a></li>
 </ul>
 </div>
 
